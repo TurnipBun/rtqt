@@ -27,10 +27,15 @@ private slots:
     
 private:
     void createStatusBar();
+    QString getMsgHex(CANRMMsg &msg);
 
     QLabel *statusLabel;
-    TabIndex pre;/*tab变化时用于清理*/
+    //TabIndex pre;/*tab变化时用于清理*/
     Can *pCan;
+    CANRMMsg firstChannelSendMsg;
+    CANRMMsg secondChannelSendMsg;
+    CANRMMsg fisrtChannelRecvMsg;
+    CANRMMsg secondChannelRecvMsg;
     
 };
 

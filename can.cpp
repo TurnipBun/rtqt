@@ -59,6 +59,7 @@ int Can::initAll()
     defaultInitData(initData);
     ret = CANInit(secondChannel, initData);
     CAN_CHECK_RETURN(ret);
+    return CAN_SUC;
 }
 
 int Can::send(CANRMMsg &msgData,ChannelNo channel)
@@ -77,27 +78,17 @@ int Can::resv(CANRMMsg &msgData,ChannelNo channel)
     return CAN_SUC;
 }
 
-inline ChannelNo Can::getFirstChannel()
-{
-    return firstChannel;
-}
-
-inline ChannelNo Can::getSecondChannel()
-{
-    return secondChannel;
-}
-
 void Can::closeAll()
 {
     if (devNo == INVALID_DEVNO) return;
     CANClose(firstChannel);
     CANClose(secondChannel);
-    devNo == INVALID_DEVNO;
+    devNo = INVALID_DEVNO;
 }
 
 int Can::createRecvTask()
 {
-
+    return 0;
 }
 
 void Can::defaultInitData(CANRMInitInBuf &initData)
@@ -115,7 +106,8 @@ void Can::defaultMsgData(CANRMMsg &msgData)
 	msgData.RTR = 0;
 	msgData.ID = 0x02;            /*目标站点号*/
 	msgData.DataLenCode = 8;      /*数据长度*/
+    MsgUnit base = getMsgUnitBase();
 
 	for(int i = 0; i < 8; ++i)
-		msgData.Data[i] = getMsgUnitBase() + i; 
+		msgData.Data[i] = base + i; 
 }

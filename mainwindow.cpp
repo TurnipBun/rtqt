@@ -1,5 +1,6 @@
 #include <cassert>
 #include <QtGui>
+//#include <pthread>
 
 #include "mainwindow.hpp"
 
@@ -22,6 +23,12 @@ void MainWindow::createStatusBar()
     connect(this,SIGNAL(statusChanged(const QString &)),
             this, SLOT(const updateStatusBar(QString &)));
 }
+
+QString MainWindow::getMsgHex(CANRMMsg &msg)
+{
+    return tr("0x%1 0x%2 0x%3 0x%4 0x%5 0x%6 0x%7 0x%8").arg(msg.Data[0],0,16).arg(msg.Data[1],0,16).arg(msg.Data[2],0,16).arg(msg.Data[3],0,16).arg(msg.Data[4],0,16).arg(msg.Data[5],0,16).arg(msg.Data[6],0,16).arg(msg.Data[7],0,16);
+}
+
 
 void MainWindow::updateStatusBar(const QString &status)
 {
@@ -60,6 +67,11 @@ void MainWindow::on_pushCANOpen_clicked()
     pushCANClose->setEnabled(true);
     groupChannel_1->setEnabled(true);
     groupChannel_2->setEnabled(true);
+    Can::defaultMsgData(firstChannelSendMsg);
+    lineSendData_1->setText(getMsgHex(firstChannelSendMsg));
+
+    Can::defaultMsgData(secondChannelSendMsg);
+    lineSendData_2->setText(getMsgHex(secondChannelSendMsg));
     
     return;
 }
@@ -83,8 +95,28 @@ void MainWindow::on_pushCANClose_clicked()
 
 void MainWindow::on_pushSend_1_clicked()
 {
+    int ret;
+    ret = pCan->send(firstChannelSendMsg, pCan->getFirstChannel());
+    if (ret == CAN_SUC)
+    {
+        updateStatusBar(tr("send data using first channel success ..."));
+    }
+    else
+    {
+        updateStatusBar(tr("send data using first channel failed ..."));
+    }
 }
 
 void MainWindow::on_pushSend_2_clicked()
 {
+    int ret;
+    ret = pCan->send(secondChannelSendMsg, pCan->getSecondChannel());
+    if (ret == CAN_SUC)
+    {
+        updateStatusBar(tr("send data using second channel success ..."));
+    }
+    else
+    {
+        updateStatusBar(tr("send data using second channel failed ..."));
+    }
 }

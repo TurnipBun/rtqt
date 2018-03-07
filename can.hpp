@@ -45,4 +45,17 @@ private:
     MsgUnit firstRecvBuf[8];
     MsgUnit secondRecvBuf[8];
 };
+
+/*******************inline 函数要在头文件中实现*********************/
+
+inline ChannelNo Can::getFirstChannel()
+{
+    return firstChannel;
+}
+
+inline ChannelNo Can::getSecondChannel()
+{
+    return secondChannel;
+}
+
 #endif

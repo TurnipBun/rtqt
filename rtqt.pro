@@ -13,3 +13,4 @@ FORMS += mainwindow.ui
 SOURCES += can.cpp main.cpp mainwindow.cpp os.cpp
 RESOURCES += rtqt.qrc
 LIBS += -L. -lP303RT
+QMAKE_CXXFLAGS += -std=c++0x
