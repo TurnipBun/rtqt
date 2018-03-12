@@ -12,5 +12,4 @@ HEADERS += can.hpp DEF_P303.h EXPORT_P303.h mainwindow.hpp os.hpp
 FORMS += mainwindow.ui
 SOURCES += can.cpp main.cpp mainwindow.cpp os.cpp
 RESOURCES += rtqt.qrc
-LIBS += -L. -lP303RT
-QMAKE_CXXFLAGS += -std=c++0x
+LIBS += -pthread -L. -lP303RT

@@ -1,113 +1,135 @@
+#include <sstream>
+#include <iostream>
+#include <pthread.h>
+#include <QtGui>
+
+#include "os.hpp"
 #include "can.hpp"
 
 #define CAN_CHECK_RETURN(x) if ((x) == CAN_ERR) return CAN_ERR;
 
-static LocalID gId = 0x1000;
-static MsgUnit gUnitBase = 0;
+using std::cout;
+using std::endl;
+using std::ostringstream;
+using std::string;
+using std::hex;
 
+CAN::CAN(int ch)
+    :channel(ch), isInited(false), isHeadSetted(false)
+{}
 
-static LocalID getLocalID()
+CAN::~CAN()
 {
-    return gId <<= 1;
-}
-static MsgUnit getMsgUnitBase()
-{
-    return gUnitBase += 1;
-}
-
-Can::Can(DevNo dev)
-{
-    devNo = dev;
-    firstChannel = dev* 2;
-    secondChannel = dev * 2 + 1;
+    if (isInited)
+    {
+        close();
+    }
 }
 
-void Can::reset(DevNo dev)
+/*初始化通道*/
+int CAN::init(int id, int mask, int rate)
 {
-    closeAll();
-    devNo = dev;
-    firstChannel = devNo * 2;
-    secondChannel = devNo * 2 + 1;
-}
 
-int Can::openAll()
-{
-    int ret;
-    
-    ret = CANOpen(firstChannel);
-    CAN_CHECK_RETURN(ret);
-    ret = CANOpen(secondChannel);
-    CAN_CHECK_RETURN(ret);
-    
+    CANRMInitInBuf conf;
+
+    //检查是否已初始化
+    if (isInited)
+    {
+        OS::addLog("channel",false);
+        OS::addLog(channel,false);
+        OS::addLog("already inited ...");
+        return CAN_SUC;
+    }
+
+    //打开通道
+    if (CAN_ERR == CANOpen(channel))
+    {
+        OS::addLog("channel",false);
+        OS::addLog(channel,false);
+        OS::addLog("open failed ...");
+        return CAN_ERR;
+    }
+
+    //初始化通道
+    conf.FrameFormat = 0;
+    conf.LocalID = id;
+    conf.LocalIDMask = mask;
+    conf.BaudRate = rate;
+    conf.Reserved1=1;
+    conf.Reserved2=0;
+    conf.Reserved3=0;
+    conf.Reserved4=0;
+
+    if (CAN_ERR == CANInit(channel, conf))
+    {
+        OS::addLog("channel",false);
+        OS::addLog(channel,false);
+        OS::addLog("open failed ...");
+        return CAN_ERR;
+    }
+
     return CAN_SUC;
 }
 
-int Can::initAll()
+/*设置消息头*/
+void CAN::setSendMsgHead(int id, int dataLen)
 {
-    CANRMInitInBuf initData;
-    int ret;
-    
-    ret = CANReset(firstChannel);
-    CAN_CHECK_RETURN(ret);
-    ret = CANReset(secondChannel);
-    CAN_CHECK_RETURN(ret);
+    sendMsg.FrameFormat = 0;
+    sendMsg.RTR = 0;
+    sendMsg.ID = id;
+    sendMsg.DataLenCode = dataLen;
 
-    defaultInitData(initData);
-    ret = CANInit(firstChannel, initData);
-    CAN_CHECK_RETURN(ret);
-    
-    defaultInitData(initData);
-    ret = CANInit(secondChannel, initData);
-    CAN_CHECK_RETURN(ret);
+    isHeadSetted = true;//消息头已设置状态
+}
+int CAN::send(string msg)
+{
+    int i;
+
+    //检查消息头是否设置
+    if (!isHeadSetted)
+    {
+        OS::addLog("send msg failed, head is not setted ...");
+        return CAN_ERR;
+    }
+
+    //填充消息
+    memset(sendMsg.Data,0,8);
+    for (i = 0; i < 8; i++)
+    {
+        if (msg[i] == '\0') break;
+        sendMsg.Data[i] = msg[i];
+    }
+
+    OS::addLog("channel", false);
+    OS::addLog(channel, false);
+    OS::addLog("send", false);
+    OS::addLog(msg, false);
+
+    //发送消息
+    if (CAN_ERR == CANSend(channel, sendMsg))
+    {
+        OS::addLog("failed ...");
+        return CAN_ERR;
+    }
+
+    OS::addLog("success ...");
     return CAN_SUC;
 }
 
-int Can::send(CANRMMsg &msgData,ChannelNo channel)
+/*接收数据*/
+int CAN::recv()
 {
-    int ret;
-    ret = CANSend(channel, msgData);
-    CAN_CHECK_RETURN(ret);
-    return CAN_SUC;
+    return CANReceive(channel, &recvMsg);
 }
 
-int Can::resv(CANRMMsg &msgData,ChannelNo channel)
+/*关闭通道*/
+int CAN::close()
 {
-    int ret;
-    ret = CANReceive(channel, &msgData);
-    CAN_CHECK_RETURN(ret);
-    return CAN_SUC;
+    int ret = CANClose(channel);
+    if (ret == CAN_SUC)
+    {
+        isInited = false;//恢复到未初始化状态
+    }
+    return ret;
 }
 
-void Can::closeAll()
-{
-    if (devNo == INVALID_DEVNO) return;
-    CANClose(firstChannel);
-    CANClose(secondChannel);
-    devNo = INVALID_DEVNO;
-}
-
-int Can::createRecvTask()
-{
-    return 0;
-}
-
-void Can::defaultInitData(CANRMInitInBuf &initData)
-{
-    initData.FrameFormat =0;           /*标准帧(1-扩展帧)*/
-	initData.LocalID=getLocalID();     /*本地CAN节点ID*/
-	initData.LocalIDMask =0xfffff800; /*本地CAN节点ID掩码*/
-	initData.BaudRate=250;
-	initData.Reserved1=1;              /*两个16位过滤器(0-单个32位过滤器)*/
-}
-
-void Can::defaultMsgData(CANRMMsg &msgData)
-{
-    msgData.FrameFormat = 0;      /*标准帧*/
-	msgData.RTR = 0;
-	msgData.ID = 0x02;            /*目标站点号*/
-	msgData.DataLenCode = 8;      /*数据长度*/
-    MsgUnit base = getMsgUnitBase();
-
-	for(int i = 0; i < 8; ++i)
-		msgData.Data[i] = base + i; 
-}

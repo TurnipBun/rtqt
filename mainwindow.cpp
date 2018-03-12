@@ -1,122 +1,203 @@
+#include <string>
 #include <cassert>
 #include <QtGui>
 //#include <pthread>
 
+#include "os.hpp"
 #include "mainwindow.hpp"
+
+using std::string;
+
+void *recvFirst(void *arg)
+{
+    int ret;
+    MainWindow *pWin = (MainWindow *)arg;
+    string recvStr;
+    while(1)
+    {
+        ret = pWin->pFirstCh->recv();
+        if (CAN_SUC == ret)
+        {
+            recvStr = pWin->pFirstCh->getRecvMsg();
+            pWin->lineRecvData_1->setText(QString::fromStdString(recvStr));
+            //pWin->lineRecvData_1->setText(QString::fromStdString("stub"));
+            OS::addLog("receive data from first channel", false);
+            OS::addLog(recvStr);
+        }
+        else OS::addLog("receive data from first channel failed ...");
+    }
+    pthread_exit(NULL);
+}
+
+void *recvSecond(void *arg)
+{
+    int ret;
+    MainWindow *pWin = (MainWindow *)arg;
+    string recvStr;
+    while(1)
+    {
+        ret = pWin->pSecondCh->recv();
+        if (CAN_SUC == ret)
+        {
+            recvStr = pWin->pSecondCh->getRecvMsg();
+            pWin->lineRecvData_2->setText(QString::fromStdString(recvStr));
+            //pWin->lineRecvData_2->setText(QString::fromStdString("stub"));
+            OS::addLog("receive data from second channel", false);
+            OS::addLog(recvStr);
+        }
+        else OS::addLog("receive data from second channel failed ...");
+    }
+    pthread_exit(NULL);
+}
+
 
 /*构造函数
  *1.初始化UI
+ *2.创建两个CAN通道对象
+ *3.创建状态栏
  */
 MainWindow::MainWindow()
+    :pStatusLabel(NULL), pFirstCh(NULL), pSecondCh(NULL), pFirstTh(NULL), pSecondTh(NULL)
 {
 	setupUi(this);
+    pFirstCh = new CAN(0);
+    pSecondCh = new CAN(1);
     createStatusBar();
-    pCan = new Can(0);
 }
 
-void MainWindow::createStatusBar()
-{
-    statusLabel = new QLabel(tr("windows initialized ok ..."));
-    statusLabel->setAlignment(Qt::AlignHCenter);
-
-    statusBar()->addWidget(statusLabel);
-    connect(this,SIGNAL(statusChanged(const QString &)),
-            this, SLOT(const updateStatusBar(QString &)));
-}
-
-QString MainWindow::getMsgHex(CANRMMsg &msg)
-{
-    return tr("0x%1 0x%2 0x%3 0x%4 0x%5 0x%6 0x%7 0x%8").arg(msg.Data[0],0,16).arg(msg.Data[1],0,16).arg(msg.Data[2],0,16).arg(msg.Data[3],0,16).arg(msg.Data[4],0,16).arg(msg.Data[5],0,16).arg(msg.Data[6],0,16).arg(msg.Data[7],0,16);
-}
-
-
-void MainWindow::updateStatusBar(const QString &status)
-{
-    statusLabel->setText(status);
-}
-
+/*下拉框变化时重新创建通道*/
 void MainWindow::on_comboDevIndex_currentIndexChanged(const QString &text)
 {
     bool result;
     int devNo = text.toInt(&result,10);
-    assert(result == true);
-    pCan->reset(devNo);
-    updateStatusBar(tr("current CAN dev is %1 ...").arg(text));
-    
+    assert(result);
+    if (pFirstCh != NULL)
+    {
+        delete pFirstCh;
+    }
+    if (pSecondCh != NULL)
+    {
+        delete pSecondCh;
+    }
+    pFirstCh = new CAN(devNo*2);
+    pSecondCh = new CAN(devNo*2+1);
+    updateStatus(tr("current device id is %1").arg(devNo));
 }
 
+/*打开通道*/
 void MainWindow::on_pushCANOpen_clicked()
 {
-    int ret;
-    ret = pCan->initAll();
-    if (ret == CAN_ERR)
+    //更新发送数据
+    string sendStr;
+    sendStr = OS::randDigitString(8);
+    lineSendData_1->setText(QString::fromLocal8Bit(sendStr.c_str()));
+    sendStr = OS::randDigitString(8);
+    lineSendData_2->setText(QString::fromLocal8Bit(sendStr.c_str()));
+    
+    if (CAN_ERR == pFirstCh->init(0x2000))
     {
-        updateStatusBar(tr("init CAN dev failed ..."));
-        //return;
+        updateStatus(tr("channel %1 init failed ...").arg(pFirstCh->getChannel()));
+        return;
     }
-
-    ret = pCan->openAll();
-    if (ret == CAN_ERR)
+    if (CAN_ERR == pSecondCh->init(0x4000))
     {
-        updateStatusBar(tr("open CAN channels failed ..."));
-        //return;
+        updateStatus(tr("channel %1 init failed ...").arg(pSecondCh->getChannel()));
+        return;
     }
+    updateStatus(tr("all channel init success ..."));
+    
+    pFirstCh->setSendMsgHead(0x2);
+    pSecondCh->setSendMsgHead(0x1);
 
     comboDevIndex->setEnabled(false);
     pushCANOpen->setEnabled(false);
     pushCANClose->setEnabled(true);
     groupChannel_1->setEnabled(true);
     groupChannel_2->setEnabled(true);
-    Can::defaultMsgData(firstChannelSendMsg);
-    lineSendData_1->setText(getMsgHex(firstChannelSendMsg));
 
-    Can::defaultMsgData(secondChannelSendMsg);
-    lineSendData_2->setText(getMsgHex(secondChannelSendMsg));
-    
-    return;
+    createCANRecvThread();
 }
 
+/*关闭通道*/
 void MainWindow::on_pushCANClose_clicked()
 {
-    QString text = comboDevIndex->currentText();
-    bool result;
-    int devNo = text.toInt(&result,10);
-    assert(result == true);
-    pCan->reset(devNo);
-    
+    pFirstCh->close();
+    pSecondCh->close();
+
     comboDevIndex->setEnabled(true);
     pushCANOpen->setEnabled(true);
     pushCANClose->setEnabled(false);
     groupChannel_1->setEnabled(false);
     groupChannel_2->setEnabled(false);
 
-    updateStatusBar(tr("current CAN dev is %1 ...").arg(text));
+    /*确认线程是否创建*/
+    destoryCANRecvThread();
 }
 
+/*通道1发送*/
 void MainWindow::on_pushSend_1_clicked()
 {
-    int ret;
-    ret = pCan->send(firstChannelSendMsg, pCan->getFirstChannel());
-    if (ret == CAN_SUC)
+    string sendStr;
+    QString str = lineSendData_1->text();
+    if (CAN_ERR == pFirstCh->send(str.toStdString()))
     {
-        updateStatusBar(tr("send data using first channel success ..."));
+        updateStatus(tr("send data %1 failed ...").arg(str));
+        return;
     }
-    else
-    {
-        updateStatusBar(tr("send data using first channel failed ..."));
-    }
+    updateStatus(tr("send data %1 success ...").arg(str));
+    //更新发送数据
+    sendStr = OS::randDigitString(8);
+    lineSendData_1->setText(QString::fromLocal8Bit(sendStr.c_str()));
 }
 
+/*通道1发送*/
 void MainWindow::on_pushSend_2_clicked()
 {
-    int ret;
-    ret = pCan->send(secondChannelSendMsg, pCan->getSecondChannel());
-    if (ret == CAN_SUC)
+    string sendStr;
+    QString str = lineSendData_2->text();
+    if (CAN_ERR == pSecondCh->send(str.toStdString()))
     {
-        updateStatusBar(tr("send data using second channel success ..."));
+        updateStatus(tr("send data %1 failed ...").arg(str));
+        return;
     }
-    else
-    {
-        updateStatusBar(tr("send data using second channel failed ..."));
-    }
+    updateStatus(tr("send data %1 success ...").arg(str));
+    //更新发送数据
+    sendStr = OS::randDigitString(8);
+    lineSendData_2->setText(QString::fromLocal8Bit(sendStr.c_str()));
 }
+
+/*创建状态栏*/
+void MainWindow::createStatusBar()
+{
+    pStatusLabel = new QLabel(tr("windows initialized ok ..."));
+    pStatusLabel->setAlignment(Qt::AlignHCenter);
+
+    statusBar()->addWidget(pStatusLabel);
+}
+
+/*更新状态栏*/
+void MainWindow::updateStatus(const QString &text)
+{
+    pStatusLabel->setText(text);
+}
+
+int MainWindow::createCANRecvThread()
+{
+    pFirstTh = new pthread_t;
+    pthread_create(pFirstTh, NULL, recvFirst, (void *)this);
+    pthread_detach(*pFirstTh);
+
+    pSecondTh = new pthread_t;
+    pthread_create(pSecondTh, NULL, recvSecond, (void *)this);
+    pthread_detach(*pSecondTh);
+    return 0;
+}
+
+int MainWindow::destoryCANRecvThread()
+{
+    pthread_cancel(*pFirstTh);
+    pthread_cancel(*pSecondTh);
+    return 0;
+}
+
+

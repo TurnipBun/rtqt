@@ -1,61 +1,58 @@
 #ifndef CAN_H
 #define CAN_H
 
+#include <cstring>
+#include <string>
+#include <pthread.h>
+#include <QtGui>
+
 #ifdef VXWORKS
 #include "DEF_P303.h"
 #else
 #include "EXPORT_P303.H"
 #endif
 
+using std::string;
 
 #define CAN_ERR 0
 #define CAN_SUC 1
 
-#define INVALID_DEVNO 0xff
-//#define INVALID_CHANNELNO 0xff;
-
-using DevNo = unsigned char;
-using ChannelNo = unsigned char;
-using LocalID = unsigned int;
-using MsgUnit = unsigned char;
-
-class Can
+/*代表CAN的一个通道*/
+class CAN
 {
 public:
-	Can(DevNo = INVALID_DEVNO);
-    void reset(DevNo);
-	int openAll();
-	int initAll();
-    int send(CANRMMsg &msgData,ChannelNo channel);
-    int resv(CANRMMsg &msgData,ChannelNo channel);
-    ChannelNo getFirstChannel();
-    ChannelNo getSecondChannel();
-	int createRecvTask();
-	void closeAll();
-
-	static void defaultInitData(CANRMInitInBuf &initData);
-	static void defaultMsgData(CANRMMsg &msgData);
+	CAN(int ch);
+	~CAN();
+	
+	int init(int id, int mask = 0xfffff800, int rate = 250);//调用CANopen和CANinit进行初始化
+	void setSendMsgHead(int id, int dataLen = 8);//设置CAN消息头
+	int send(string msg);//发送CAN消息
+	int recv();//接收CAN消息
+	int close();//关闭CAN通道
+	
+	int getChannel();//获取通道号
+	string getSendMsg();//获取发送消息
+	string getRecvMsg();//获取接收消息
 private:
-
-	DevNo devNo;
-    ChannelNo firstChannel;
-    ChannelNo secondChannel;
-    MsgUnit firstSendBuf[8];
-    MsgUnit secondSendBuf[8];
-    MsgUnit firstRecvBuf[8];
-    MsgUnit secondRecvBuf[8];
+    int channel;
+	CANRMMsg sendMsg;
+	CANRMMsg recvMsg;
+    bool isInited;
+    bool isHeadSetted;
+    //TODO:添加计数器,发送计数,接收计数,错误计数
 };
 
-/*******************inline 函数要在头文件中实现*********************/
-
-inline ChannelNo Can::getFirstChannel()
+inline int CAN::getChannel()
 {
-    return firstChannel;
+    return channel;
 }
-
-inline ChannelNo Can::getSecondChannel()
+inline string CAN::getSendMsg()
 {
-    return secondChannel;
+    return string((char*)sendMsg.Data,8);
+}
+inline string CAN::getRecvMsg()
+{
+    return string((char*)recvMsg.Data,8);
 }
 
 #endif
