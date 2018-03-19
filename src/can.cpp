@@ -35,18 +35,12 @@ int CAN::init(int id, int mask, int rate)
     //检查是否已初始化
     if (isInited)
     {
-        OS::addLog("channel",false);
-        OS::addLog(channel,false);
-        OS::addLog("already inited ...");
         return CAN_SUC;
     }
 
     //打开通道
     if (CAN_ERR == CANOpen(channel))
     {
-        OS::addLog("channel",false);
-        OS::addLog(channel,false);
-        OS::addLog("open failed ...");
         return CAN_ERR;
     }
 
@@ -62,9 +56,6 @@ int CAN::init(int id, int mask, int rate)
 
     if (CAN_ERR == CANInit(channel, conf))
     {
-        OS::addLog("channel",false);
-        OS::addLog(channel,false);
-        OS::addLog("open failed ...");
         return CAN_ERR;
     }
 
@@ -88,7 +79,6 @@ int CAN::send(string msg)
     //检查消息头是否设置
     if (!isHeadSetted)
     {
-        OS::addLog("send msg failed, head is not setted ...");
         return CAN_ERR;
     }
 
@@ -100,19 +90,12 @@ int CAN::send(string msg)
         sendMsg.Data[i] = msg[i];
     }
 
-    OS::addLog("channel", false);
-    OS::addLog(channel, false);
-    OS::addLog("send", false);
-    OS::addLog(msg, false);
-
     //发送消息
     if (CAN_ERR == CANSend(channel, sendMsg))
     {
-        OS::addLog("failed ...");
         return CAN_ERR;
     }
 
-    OS::addLog("success ...");
     return CAN_SUC;
 }
 

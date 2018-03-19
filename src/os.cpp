@@ -20,42 +20,6 @@ void OS::wait(unsigned int seconds)
 void OS::setLogFile(string &file)
 {
     if (isLogFileLoad == false) logFile = file;
-    else OS::addLog("setLogFile failed, log file already loaded!");
-}
-
-void OS::addLog(const string &text, bool isNewLine)
-{
-    if (isLogFileLoad == false)
-    {
-        osf.open(logFile);
-        isLogFileLoad = true;
-        OS::addLog("start log ...");
-    }
-    osf << text;
-    if (isNewLine == false) osf << ' ';
-    else osf << "\n";
-
-    osf.flush();
-}
-
-void OS::addLog(const int num, bool isNewLine)
-{
-    if (isLogFileLoad == false)
-    {
-        osf.open(logFile);
-        isLogFileLoad = true;
-        OS::addLog("start log ...");
-    }
-    osf << num;
-    if (isNewLine == false)
-    {
-        osf << ' ';
-    }
-    else
-    {
-        osf << "\n";
-        osf.flush();
-    }
 }
 
 char OS::randSingleDigit()

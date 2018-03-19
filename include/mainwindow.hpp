@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <pthread.h>
+#include "log.hpp"
 #include "can.hpp"
 #include "ui_mainwindow.h"
 
@@ -14,6 +15,7 @@ class MainWindow : public QMainWindow, public Ui::MainWindow
 	Q_OBJECT
 public:
 	MainWindow();
+    ~MainWindow();
 
     friend void *recvFirst(void *arg);
     friend void *recvSecond(void *arg);
@@ -40,6 +42,7 @@ private:
     CAN *pSecondCh;/*通道2*/
     pthread_t* pFirstTh;/*通道1接收线程*/
     pthread_t* pSecondTh;/*通道2接收线程*/
+    Log* pLog;
 
 };
 

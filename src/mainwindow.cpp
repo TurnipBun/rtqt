@@ -20,11 +20,8 @@ void *recvFirst(void *arg)
         {
             recvStr = pWin->pFirstCh->getRecvMsg();
             pWin->lineRecvData_1->setText(QString::fromStdString(recvStr));
-            //pWin->lineRecvData_1->setText(QString::fromStdString("stub"));
-            OS::addLog("receive data from first channel", false);
-            OS::addLog(recvStr);
+            (*(pWin->pLog)) << "first received data " << recvStr << ENDL;
         }
-        else OS::addLog("receive data from first channel failed ...");
     }
     pthread_exit(NULL);
 }
@@ -41,11 +38,8 @@ void *recvSecond(void *arg)
         {
             recvStr = pWin->pSecondCh->getRecvMsg();
             pWin->lineRecvData_2->setText(QString::fromStdString(recvStr));
-            //pWin->lineRecvData_2->setText(QString::fromStdString("stub"));
-            OS::addLog("receive data from second channel", false);
-            OS::addLog(recvStr);
+            (*(pWin->pLog)) << "second received data " << recvStr << ENDL;
         }
-        else OS::addLog("receive data from second channel failed ...");
     }
     pthread_exit(NULL);
 }
@@ -57,12 +51,23 @@ void *recvSecond(void *arg)
  *3.创建状态栏
  */
 MainWindow::MainWindow()
-    :pStatusLabel(NULL), pFirstCh(NULL), pSecondCh(NULL), pFirstTh(NULL), pSecondTh(NULL)
+    :pStatusLabel(NULL), pFirstCh(NULL), pSecondCh(NULL), pFirstTh(NULL), pSecondTh(NULL), pLog(NULL)
 {
 	setupUi(this);
     pFirstCh = new CAN(0);
     pSecondCh = new CAN(1);
+    pLog = LogFactory::getFactory()->createLog(TO_FILE);
+    pLog->init();
     createStatusBar();
+    (*pLog) << "init main window..." << ENDL;
+}
+
+MainWindow::~MainWindow()
+{
+    (*pLog) << "destory main window..." << ENDL;
+    if (NULL != pFirstCh) delete pFirstCh;
+    if (NULL != pSecondCh) delete pSecondCh;
+    if (NULL != pLog) delete pLog;
 }
 
 /*下拉框变化时重新创建通道*/
@@ -74,11 +79,15 @@ void MainWindow::on_comboDevIndex_currentIndexChanged(const QString &text)
     if (pFirstCh != NULL)
     {
         delete pFirstCh;
+        pFirstCh = NULL;
     }
     if (pSecondCh != NULL)
     {
         delete pSecondCh;
+        pFirstCh = NULL;
     }
+    
+    (*pLog) << "Dev " << devNo << " has been selected ..." << ENDL;
     pFirstCh = new CAN(devNo*2);
     pSecondCh = new CAN(devNo*2+1);
     updateStatus(tr("current device id is %1").arg(devNo));
@@ -105,6 +114,7 @@ void MainWindow::on_pushCANOpen_clicked()
         return;
     }
     updateStatus(tr("all channel init success ..."));
+    (*pLog) << "init channels ..." << ENDL;
     
     pFirstCh->setSendMsgHead(0x2);
     pSecondCh->setSendMsgHead(0x1);
@@ -121,6 +131,10 @@ void MainWindow::on_pushCANOpen_clicked()
 /*关闭通道*/
 void MainWindow::on_pushCANClose_clicked()
 {
+    /*确认线程是否创建*/
+    destoryCANRecvThread();
+
+    (*pLog) << "close channels ..." << ENDL;
     pFirstCh->close();
     pSecondCh->close();
 
@@ -130,8 +144,6 @@ void MainWindow::on_pushCANClose_clicked()
     groupChannel_1->setEnabled(false);
     groupChannel_2->setEnabled(false);
 
-    /*确认线程是否创建*/
-    destoryCANRecvThread();
 }
 
 /*通道1发送*/
@@ -144,6 +156,8 @@ void MainWindow::on_pushSend_1_clicked()
         updateStatus(tr("send data %1 failed ...").arg(str));
         return;
     }
+    
+    (*pLog) << "first channel send data " << str.toStdString() << ENDL;
     updateStatus(tr("send data %1 success ...").arg(str));
     //更新发送数据
     sendStr = OS::randDigitString(8);
@@ -160,6 +174,7 @@ void MainWindow::on_pushSend_2_clicked()
         updateStatus(tr("send data %1 failed ...").arg(str));
         return;
     }
+    (*pLog) << "second channel send data " << str.toStdString() << ENDL;
     updateStatus(tr("send data %1 success ...").arg(str));
     //更新发送数据
     sendStr = OS::randDigitString(8);
@@ -183,10 +198,12 @@ void MainWindow::updateStatus(const QString &text)
 
 int MainWindow::createCANRecvThread()
 {
+    (*pLog) << "create first receive thread ..." << ENDL;
     pFirstTh = new pthread_t;
     pthread_create(pFirstTh, NULL, recvFirst, (void *)this);
     pthread_detach(*pFirstTh);
 
+    (*pLog) << "create second receive thread ..." << ENDL;
     pSecondTh = new pthread_t;
     pthread_create(pSecondTh, NULL, recvSecond, (void *)this);
     pthread_detach(*pSecondTh);
@@ -195,6 +212,7 @@ int MainWindow::createCANRecvThread()
 
 int MainWindow::destoryCANRecvThread()
 {
+    (*pLog) << "destory receive threads..." << ENDL;
     pthread_cancel(*pFirstTh);
     pthread_cancel(*pSecondTh);
     return 0;

@@ -9,10 +9,16 @@ UID_DIR = .
 HEADERS += ../include/can.hpp \
            ../include/os.hpp \
            ../include/mainwindow.hpp \
+		   ../include/log.hpp \
            ../3rdparty/include/DEF_P303.h \
            ../3rdparty/include/EXPORT_P303.h
 
-SOURCES += ../src/can.cpp ../src/os.cpp ../src/mainwindow.cpp test_can.cpp gtest_main.cpp
+SOURCES += ../src/can.cpp \
+           ../src/os.cpp \
+		   ../src/mainwindow.cpp \
+		   ../src/log.cpp \
+		   test_can.cpp \
+		   gtest_main.cpp
 
 FORMS += ../mainwindow.ui
 RESOURCES += ../rtqt.qrc
