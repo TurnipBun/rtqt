@@ -59,12 +59,12 @@ MainWindow::MainWindow()
     pLog = LogFactory::getFactory()->createLog(TO_FILE);
     pLog->init();
     createStatusBar();
-    (*pLog) << "init main window..." << ENDL;
+    (*pLog) << "init main window ..." << ENDL;
 }
 
 MainWindow::~MainWindow()
 {
-    (*pLog) << "destory main window..." << ENDL;
+    (*pLog) << "destory main window ..." << ENDL;
     if (NULL != pFirstCh) delete pFirstCh;
     if (NULL != pSecondCh) delete pSecondCh;
     if (NULL != pLog) delete pLog;
@@ -103,12 +103,12 @@ void MainWindow::on_pushCANOpen_clicked()
     sendStr = OS::randDigitString(8);
     lineSendData_2->setText(QString::fromLocal8Bit(sendStr.c_str()));
     
-    if (CAN_ERR == pFirstCh->init(0x2000))
+    if (CAN_ERR == pFirstCh->init(0x16e))
     {
         updateStatus(tr("channel %1 init failed ...").arg(pFirstCh->getChannel()));
         return;
     }
-    if (CAN_ERR == pSecondCh->init(0x4000))
+    if (CAN_ERR == pSecondCh->init(0x16e))
     {
         updateStatus(tr("channel %1 init failed ...").arg(pSecondCh->getChannel()));
         return;
@@ -116,8 +116,8 @@ void MainWindow::on_pushCANOpen_clicked()
     updateStatus(tr("all channel init success ..."));
     (*pLog) << "init channels ..." << ENDL;
     
-    pFirstCh->setSendMsgHead(0x2);
-    pSecondCh->setSendMsgHead(0x1);
+    pFirstCh->setSendMsgHead(0xf1);
+    pSecondCh->setSendMsgHead(0xf1);
 
     comboDevIndex->setEnabled(false);
     pushCANOpen->setEnabled(false);
@@ -212,7 +212,7 @@ int MainWindow::createCANRecvThread()
 
 int MainWindow::destoryCANRecvThread()
 {
-    (*pLog) << "destory receive threads..." << ENDL;
+    (*pLog) << "destory receive threads ..." << ENDL;
     pthread_cancel(*pFirstTh);
     pthread_cancel(*pSecondTh);
     return 0;

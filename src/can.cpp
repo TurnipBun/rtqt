@@ -43,6 +43,12 @@ int CAN::init(int id, int mask, int rate)
     {
         return CAN_ERR;
     }
+    
+    if (CAN_ERR == CANReset(channel))
+    {
+    	CANClose(channel);
+    	return CAN_ERR;
+    }
 
     //初始化通道
     conf.FrameFormat = 0;
@@ -56,6 +62,7 @@ int CAN::init(int id, int mask, int rate)
 
     if (CAN_ERR == CANInit(channel, conf))
     {
+    	CANClose(channel);
         return CAN_ERR;
     }
 

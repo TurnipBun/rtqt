@@ -38,3 +38,6 @@ release/
 # log file
 *.txt
 *.log
+
+# macos tempfile
+.DS_Store

@@ -76,7 +76,7 @@ public:
 private:
     LogFactory(){};
     LogFactory(const LogFactory&){};
-    LogFactory& operator=(const LogFactory&){};
+    LogFactory& operator=(const LogFactory&){return *this;}
     ~LogFactory(){};
 
     static LogFactory* pInst;

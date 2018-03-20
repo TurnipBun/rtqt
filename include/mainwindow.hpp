@@ -8,7 +8,7 @@
 #include "ui_mainwindow.h"
 
 class QLabel;
-using TabIndex = int;
+typedef int TabIndex;
 
 class MainWindow : public QMainWindow, public Ui::MainWindow
 {

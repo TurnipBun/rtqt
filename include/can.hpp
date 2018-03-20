@@ -24,7 +24,7 @@ public:
 	CAN(int ch);
 	~CAN();
 	
-	int init(int id, int mask = 0xfffff800, int rate = 250);//调用CANopen和CANinit进行初始化
+	int init(int id, int mask = 0xffff, int rate = 250);//调用CANopen和CANinit进行初始化
 	void setSendMsgHead(int id, int dataLen = 8);//设置CAN消息头
 	int send(string msg);//发送CAN消息
 	int recv();//接收CAN消息
