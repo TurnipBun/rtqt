@@ -38,6 +38,7 @@ public:
     virtual void add(const string &text) = 0;//添加log到内存
     virtual void add(const char * pText) = 0;
     virtual Log& operator<<(const string &text) = 0;
+    virtual Log& operator<<(char ch) = 0;
     virtual Log& operator<<(const char * pText) = 0;
     virtual Log& operator<<(int val) = 0;
     virtual char *get() = 0;//获取log,对标准输出型的log无效
@@ -55,6 +56,7 @@ public:
     void add(const string &text);
     void add(const char * pText);
     FileLog& operator<<(const string &text);
+    FileLog& operator<<(char ch);
     FileLog& operator<<(const char * pText);
     FileLog& operator<<(int val);
     char *get();

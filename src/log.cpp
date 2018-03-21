@@ -66,6 +66,14 @@ FileLog& FileLog::operator<<(const string &text)
     return *this;
 }
 
+FileLog& FileLog::operator<<(char ch)
+{
+    char buf[16];
+    sprintf(buf,"%#x", ch & 0xff);
+    addToBuf(buf);
+    return *this;
+}
+
 FileLog& FileLog::operator<<(const char * pText)
 {
     addToBuf(pText);

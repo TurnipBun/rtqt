@@ -8,37 +8,53 @@
 
 using std::string;
 
+/*通道1接收*/
 void *recvFirst(void *arg)
 {
     int ret;
-    MainWindow *pWin = (MainWindow *)arg;
     string recvStr;
+    
+    MainWindow *pWin = (MainWindow *)arg;
+    CAN &firstCh = *(pWin->pFirstCh);
+    CAN &secondCh = *(pWin->pSecondCh);
+    Log &fileLog = *(pWin->pLog);
+    
     while(1)
     {
-        ret = pWin->pFirstCh->recv();
+        ret = firstCh.recv();
         if (CAN_SUC == ret)
         {
-            recvStr = pWin->pFirstCh->getRecvMsg();
+            secondCh.checkMsg(firstCh.getRecvMsgRaw());//发送方检查
+            
+            recvStr = firstCh.getRecvMsgStr();
             pWin->lineRecvData_1->setText(QString::fromStdString(recvStr));
-            (*(pWin->pLog)) << "first received data " << recvStr << ENDL;
+            fileLog << "first channel received data " << recvStr << " ..." << ENDL;
         }
     }
     pthread_exit(NULL);
 }
 
+/*通道2接收*/
 void *recvSecond(void *arg)
 {
     int ret;
-    MainWindow *pWin = (MainWindow *)arg;
     string recvStr;
+    
+    MainWindow *pWin = (MainWindow *)arg;
+    CAN &firstCh = *(pWin->pFirstCh);
+    CAN &secondCh = *(pWin->pSecondCh);
+    Log &fileLog = *(pWin->pLog);
+    
     while(1)
     {
-        ret = pWin->pSecondCh->recv();
+        ret = secondCh.recv();
         if (CAN_SUC == ret)
         {
-            recvStr = pWin->pSecondCh->getRecvMsg();
+            firstCh.checkMsg(secondCh.getRecvMsgRaw());//发送方检查
+            
+            recvStr = secondCh.getRecvMsgStr();
             pWin->lineRecvData_2->setText(QString::fromStdString(recvStr));
-            (*(pWin->pLog)) << "second received data " << recvStr << ENDL;
+            fileLog << "second channel received data " << recvStr << " ..." << ENDL;
         }
     }
     pthread_exit(NULL);
@@ -70,32 +86,38 @@ MainWindow::~MainWindow()
     if (NULL != pLog) delete pLog;
 }
 
-/*下拉框变化时重新创建通道*/
-void MainWindow::on_comboDevIndex_currentIndexChanged(const QString &text)
-{
-    bool result;
-    int devNo = text.toInt(&result,10);
-    assert(result);
-    if (pFirstCh != NULL)
-    {
-        delete pFirstCh;
-        pFirstCh = NULL;
-    }
-    if (pSecondCh != NULL)
-    {
-        delete pSecondCh;
-        pFirstCh = NULL;
-    }
-    
-    (*pLog) << "Dev " << devNo << " has been selected ..." << ENDL;
-    pFirstCh = new CAN(devNo*2);
-    pSecondCh = new CAN(devNo*2+1);
-    updateStatus(tr("current device id is %1").arg(devNo));
-}
-
 /*打开通道*/
 void MainWindow::on_pushCANOpen_clicked()
 {
+    bool result;
+    QString devStr = comboDevIndex->currentText();
+    int devNo = devStr.toInt(&result,10);
+    assert(result);
+    
+    QString canRateStr = comboCANRate->currentText();
+    int canRate = canRateStr.toInt(&result,10);
+    assert(result);
+
+    //初始化通道
+    (*pLog) << "init channels ..." << ENDL;
+    if (CAN_ERR == createChannels(devNo,canRate))
+    {
+        deleteChannels();
+        updateStatus(tr("init channels failed ..."));
+        return;
+    }
+    updateStatus(tr("init channels init success ..."));
+
+    //创建线程
+    (*pLog) << "create receive threads ..." << ENDL;
+    if(CAN_ERR == createCANRecvThread())
+    {
+        deleteChannels();
+        destoryCANRecvThread();
+        updateStatus(tr("create receive threads failed ..."));
+        return;
+    }
+    
     //更新发送数据
     string sendStr;
     sendStr = OS::randDigitString(8);
@@ -103,47 +125,33 @@ void MainWindow::on_pushCANOpen_clicked()
     sendStr = OS::randDigitString(8);
     lineSendData_2->setText(QString::fromLocal8Bit(sendStr.c_str()));
     
-    if (CAN_ERR == pFirstCh->init(0x16e))
-    {
-        updateStatus(tr("channel %1 init failed ...").arg(pFirstCh->getChannel()));
-        return;
-    }
-    if (CAN_ERR == pSecondCh->init(0x16e))
-    {
-        updateStatus(tr("channel %1 init failed ...").arg(pSecondCh->getChannel()));
-        return;
-    }
-    updateStatus(tr("all channel init success ..."));
-    (*pLog) << "init channels ..." << ENDL;
-    
-    pFirstCh->setSendMsgHead(0xf1);
-    pSecondCh->setSendMsgHead(0xf1);
-
+    //调整可用性
     comboDevIndex->setEnabled(false);
+    comboCANRate->setEnabled(false);
     pushCANOpen->setEnabled(false);
     pushCANClose->setEnabled(true);
     groupChannel_1->setEnabled(true);
     groupChannel_2->setEnabled(true);
-
-    createCANRecvThread();
 }
 
 /*关闭通道*/
 void MainWindow::on_pushCANClose_clicked()
 {
-    /*确认线程是否创建*/
+    //销毁线程
+    (*pLog) << "destory receive threads ..." << ENDL;
     destoryCANRecvThread();
 
+    //释放CAN
     (*pLog) << "close channels ..." << ENDL;
-    pFirstCh->close();
-    pSecondCh->close();
+    deleteChannels();
 
+    //调整可用性
     comboDevIndex->setEnabled(true);
+    comboCANRate->setEnabled(true);
     pushCANOpen->setEnabled(true);
     pushCANClose->setEnabled(false);
     groupChannel_1->setEnabled(false);
     groupChannel_2->setEnabled(false);
-
 }
 
 /*通道1发送*/
@@ -151,14 +159,27 @@ void MainWindow::on_pushSend_1_clicked()
 {
     string sendStr;
     QString str = lineSendData_1->text();
+
+    //更新统计数据，本次不计入
+    Count send = pFirstCh->getSendCount();
+    Count err = pFirstCh->getErrCount();
+    Count recv = pSecondCh->getRecvCount();
+    double lostRate = (send == 0) ? 0.0 : 1 - 1.0*recv/send;
+    double errRate = (send == 0) ? 0.0 : 1.0*err/send;
+
+    lcdSendNum_1->display(static_cast<int>(send));
+    lcdLostRate_1->display(lostRate);
+    lcdErrRate_1->display(errRate);
+
+    //发送数
+    (*pLog) << "first channel send data " << str.toStdString() << " ..." << ENDL;
     if (CAN_ERR == pFirstCh->send(str.toStdString()))
     {
-        updateStatus(tr("send data %1 failed ...").arg(str));
+        updateStatus(tr("first channel send data %1 failed ...").arg(str));
         return;
     }
+    updateStatus(tr("first channel send data %1 success ...").arg(str));
     
-    (*pLog) << "first channel send data " << str.toStdString() << ENDL;
-    updateStatus(tr("send data %1 success ...").arg(str));
     //更新发送数据
     sendStr = OS::randDigitString(8);
     lineSendData_1->setText(QString::fromLocal8Bit(sendStr.c_str()));
@@ -169,13 +190,27 @@ void MainWindow::on_pushSend_2_clicked()
 {
     string sendStr;
     QString str = lineSendData_2->text();
+
+    //更新统计数据，本次不计入
+    Count send = pSecondCh->getSendCount();
+    Count err = pSecondCh->getErrCount();
+    Count recv = pFirstCh->getRecvCount();
+    double lostRate = (send == 0) ? 0 : 1 - 1.0*recv/send;
+    double errRate = (send == 0) ? 0 : 1.0*err/send;
+    
+    lcdSendNum_2->display(static_cast<int>(send));
+    lcdLostRate_2->display(lostRate);
+    lcdErrRate_2->display(errRate);
+
+    //发送数据
+    (*pLog) << "second channel send data " << str.toStdString() << " ..." << ENDL;
     if (CAN_ERR == pSecondCh->send(str.toStdString()))
     {
-        updateStatus(tr("send data %1 failed ...").arg(str));
+        updateStatus(tr("second channel send data %1 failed ...").arg(str));
         return;
     }
-    (*pLog) << "second channel send data " << str.toStdString() << ENDL;
     updateStatus(tr("send data %1 success ...").arg(str));
+    
     //更新发送数据
     sendStr = OS::randDigitString(8);
     lineSendData_2->setText(QString::fromLocal8Bit(sendStr.c_str()));
@@ -184,7 +219,7 @@ void MainWindow::on_pushSend_2_clicked()
 /*创建状态栏*/
 void MainWindow::createStatusBar()
 {
-    pStatusLabel = new QLabel(tr("windows initialized ok ..."));
+    pStatusLabel = new QLabel(tr("windows initialized success ..."));
     pStatusLabel->setAlignment(Qt::AlignHCenter);
 
     statusBar()->addWidget(pStatusLabel);
@@ -196,26 +231,85 @@ void MainWindow::updateStatus(const QString &text)
     pStatusLabel->setText(text);
 }
 
-int MainWindow::createCANRecvThread()
+int MainWindow::createChannels(int devNo, int canRate)
 {
-    (*pLog) << "create first receive thread ..." << ENDL;
-    pFirstTh = new pthread_t;
-    pthread_create(pFirstTh, NULL, recvFirst, (void *)this);
-    pthread_detach(*pFirstTh);
+    //初始化通道1
+    if (pFirstCh != NULL)
+        delete pFirstCh;
+    pFirstCh = new CAN(devNo*2);
+    if (CAN_ERR == pFirstCh->init(canRate))
+    {
+        return CAN_ERR;
+    }
+    pFirstCh->setMsgHead();
+    
+    //初始化通道2
+    if (pSecondCh != NULL)
+        delete pSecondCh;
+    pSecondCh = new CAN(devNo*2+1);
 
-    (*pLog) << "create second receive thread ..." << ENDL;
-    pSecondTh = new pthread_t;
-    pthread_create(pSecondTh, NULL, recvSecond, (void *)this);
-    pthread_detach(*pSecondTh);
-    return 0;
+    if (CAN_ERR == pSecondCh->init(canRate))
+    {
+        return CAN_ERR;
+    }
+    pSecondCh->setMsgHead();
+
+    return CAN_SUC;
 }
 
-int MainWindow::destoryCANRecvThread()
+
+void MainWindow::deleteChannels()
 {
-    (*pLog) << "destory receive threads ..." << ENDL;
-    pthread_cancel(*pFirstTh);
-    pthread_cancel(*pSecondTh);
-    return 0;
+    if (pFirstCh != NULL)
+    {
+        delete pFirstCh;
+        pFirstCh = NULL;
+    }
+    
+    if (pSecondCh != NULL)
+    {
+        delete pSecondCh;
+        pSecondCh = NULL;
+    }
+}
+
+
+int MainWindow::createCANRecvThread()
+{
+    int rc;
+
+    pFirstTh = new pthread_t;
+    rc = pthread_create(pFirstTh, NULL, recvFirst, (void *)this);
+    if (rc) return CAN_ERR;
+    
+    rc = pthread_detach(*pFirstTh);
+    if (rc) return CAN_ERR;
+
+    pSecondTh = new pthread_t;
+    rc = pthread_create(pSecondTh, NULL, recvSecond, (void *)this);
+    if (rc) return CAN_ERR;
+    
+    rc = pthread_detach(*pSecondTh);
+    if (rc) return CAN_ERR;
+    
+    return CAN_SUC;
+}
+
+void MainWindow::destoryCANRecvThread()
+{
+    if (pFirstTh != NULL)
+    {
+        pthread_cancel(*pFirstTh);
+        delete pFirstTh;
+        pFirstTh = NULL;
+    }
+    
+    if (pSecondTh != NULL)
+    {
+        pthread_cancel(*pSecondTh);
+        delete pSecondTh;
+        pSecondTh = NULL;
+    }
 }
 
 

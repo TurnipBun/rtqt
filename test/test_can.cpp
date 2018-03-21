@@ -39,8 +39,8 @@ TEST(FileLogTest, OperatorAdd)
     const char *pText1 = " huang";
     string text2(" cheng ");
     int year = 1990;
-    string exp("hello world huang cheng 1990\n\r");
-    (*g_pLog) << pText1 << text2 << year << ENDL;
+    string exp("hello world huang cheng 19900xff\n\r");
+    (*g_pLog) << pText1 << text2 << year << char(0xff) << ENDL;
     cout << "add log ..." << endl;
     string got = g_pLog->get();
     cout << "got log:" << got << endl;

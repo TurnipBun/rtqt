@@ -25,7 +25,6 @@ signals:
     
 private slots:
     //void showReceivedData(ChannelNo ch, string data);/*显示数据*/
-    void on_comboDevIndex_currentIndexChanged(const QString &text);
     void on_pushCANOpen_clicked();
     void on_pushCANClose_clicked();
     void on_pushSend_1_clicked();
@@ -34,8 +33,10 @@ private slots:
 private:
     void createStatusBar();
     void updateStatus(const QString &text);
+    int createChannels(int devNo, int canRate);
+    void deleteChannels();
     int createCANRecvThread();/*创建2个接收线程*/
-    int destoryCANRecvThread();
+    void destoryCANRecvThread();
     
     QLabel *pStatusLabel;/*状态栏*/
     CAN *pFirstCh;/*通道1*/

@@ -1,22 +1,17 @@
-#include <sstream>
-#include <iostream>
 #include <pthread.h>
 #include <QtGui>
 
 #include "os.hpp"
 #include "can.hpp"
 
-#define CAN_CHECK_RETURN(x) if ((x) == CAN_ERR) return CAN_ERR;
-
-using std::cout;
-using std::endl;
-using std::ostringstream;
 using std::string;
-using std::hex;
 
 CAN::CAN(int ch)
-    :channel(ch), isInited(false), isHeadSetted(false)
-{}
+    :channel(ch), sendCount(0), recvCount(0), errCount(0), isInited(false), isHeadSetted(false)
+{
+    memset(&sendMsg, 0, sizeof(CANRMMsg));
+    memset(&recvMsg, 0, sizeof(CANRMMsg));
+}
 
 CAN::~CAN()
 {
@@ -27,7 +22,7 @@ CAN::~CAN()
 }
 
 /*初始化通道*/
-int CAN::init(int id, int mask, int rate)
+int CAN::init(int rate, int id, int mask)
 {
 
     CANRMInitInBuf conf;
@@ -37,12 +32,14 @@ int CAN::init(int id, int mask, int rate)
     {
         return CAN_SUC;
     }
-
+    isInited = true;
+    
     //打开通道
     if (CAN_ERR == CANOpen(channel))
     {
         return CAN_ERR;
     }
+    
     
     if (CAN_ERR == CANReset(channel))
     {
@@ -70,7 +67,7 @@ int CAN::init(int id, int mask, int rate)
 }
 
 /*设置消息头*/
-void CAN::setSendMsgHead(int id, int dataLen)
+void CAN::setMsgHead(int id, int dataLen)
 {
     sendMsg.FrameFormat = 0;
     sendMsg.RTR = 0;
@@ -102,14 +99,16 @@ int CAN::send(string msg)
     {
         return CAN_ERR;
     }
-
+    ++sendCount;
     return CAN_SUC;
 }
 
 /*接收数据*/
 int CAN::recv()
 {
-    return CANReceive(channel, &recvMsg);
+    int ret = CANReceive(channel, &recvMsg);
+    if (ret == CAN_SUC) ++recvCount;
+    return ret;
 }
 
 /*关闭通道*/
@@ -122,4 +121,13 @@ int CAN::close()
     }
     return ret;
 }
+
+/*检查数据是否为所发送数据*/
+bool CAN::checkMsg(const CANRMMsg &msg)
+{
+    bool ret = (0 == memcmp(&sendMsg, &msg, sizeof(CANRMMsg)));
+    if (ret == false) ++errCount;
+    return ret;
+}
+
 
