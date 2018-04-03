@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "log.hpp"
+#include "wincom.hpp"
 
 using std::cout;
 using std::endl;
@@ -46,4 +47,30 @@ TEST(FileLogTest, OperatorAdd)
     cout << "got log:" << got << endl;
     ASSERT_STREQ(exp.c_str(), got.c_str());
     delete g_pLog;
+}
+
+TEST(SerialPort, CommonTest)
+{
+    COM *com1 = new WinCom("COM1","9600","8","One","None");
+    COM *com2 = new WinCom("COM2","9600","8","One","None");
+    com1->init();
+    com2->init();
+    string data("hello");
+    
+    com1->send(data.c_str(),data.length());
+    com2->recv();
+
+    delete com1;
+    delete com2;
+}
+
+TEST(SerialPort, GetComListTest)
+{
+    GetWinComList getList;
+    const list<string> & comList = getList();
+    const string & com1Name = comList.front();
+    const string & com2Name = comList.back();
+    ASSERT_EQ(2,comList.size());
+    ASSERT_STREQ("COM1",com1Name.c_str());
+    ASSERT_STREQ("COM2",com2Name.c_str());
 }

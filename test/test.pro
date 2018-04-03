@@ -7,6 +7,8 @@ UID_DIR = .
 
 # Input
 HEADERS += ../include/can.hpp \
+           ../include/com.hpp \
+		   ../include/wincom.hpp \
            ../include/os.hpp \
            ../include/mainwindow.hpp \
 		   ../include/log.hpp \
@@ -14,10 +16,11 @@ HEADERS += ../include/can.hpp \
            ../3rdparty/include/EXPORT_P303.h
 
 SOURCES += ../src/can.cpp \
+           ../src/wincom.cpp \
            ../src/os.cpp \
 		   ../src/mainwindow.cpp \
 		   ../src/log.cpp \
-		   test_can.cpp \
+		   test_rtqt.cpp \
 		   gtest_main.cpp
 
 FORMS += ../mainwindow.ui
