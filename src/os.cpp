@@ -22,21 +22,22 @@ void OS::setLogFile(string &file)
     if (isLogFileLoad == false) logFile = file;
 }
 
-char OS::randSingleDigit()
+char OS::genVisibleChar()
 {
-    srand(clock());
-    return '0' + static_cast<char>(rand() % 9);
+    static int num = 0;
+    return '!' + static_cast<char>(num++ % 94);
 }
 
-string OS::randDigitString(int len)
+string OS::genVisibleString(int len)
 {
     int i;
-    string str(len + 1,'\0');
+    char vchar = genVisibleChar();
+    string vstr(len + 1,'\0');
     for (i = 0; i < len; i++)
     {
-        str[i] = OS::randSingleDigit();
+        vstr[i] = vchar;
     }
-    return str;
+    return vstr;
 }
 
 

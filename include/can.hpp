@@ -97,3 +97,4 @@ inline string CAN::getRecvMsgStr()
 }
 
 #endif
+

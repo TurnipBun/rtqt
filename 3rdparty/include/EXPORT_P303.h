@@ -9,7 +9,7 @@
 #if !defined(CAN_DLLHEAD_H)
 #define CAN_DLLHEAD_H
 
-#define Status int
+typedef int Status;
 
 typedef struct
 {

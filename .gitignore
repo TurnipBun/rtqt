@@ -41,3 +41,4 @@ release/
 
 # macos tempfile
 .DS_Store
+Makefile*

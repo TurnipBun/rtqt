@@ -14,8 +14,8 @@ public:
     static void setLogFile(string &file);
     static void addLog(const string &text, bool isNewLine = false);//TODO:实现为模板函数
     static void addLog(const int num, bool isNewLine = false);
-    static char randSingleDigit();
-    static string randDigitString(int len);
+    static char genVisibleChar();
+    static string genVisibleString(int len);
 
 static string logFile;
 static bool isLogFileLoad;
