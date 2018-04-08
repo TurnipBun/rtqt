@@ -30,8 +30,8 @@ public:
     QVBoxLayout *vLayoutMain;
 private:
     
-    void addSettingelements();
-    void fillComboContent();
+    void addSettings();
+    void fillCombos();
 
     VxCom * vxCom;
 };

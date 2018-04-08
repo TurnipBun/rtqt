@@ -2,9 +2,9 @@
 
 ComWidget::ComWidget()
 {
-    addSettingelements();
+    addSettings();
     //TODO:为各个下拉框填充内容
-    fillComboContent();
+    fillCombos();
 }
 ComWidget::~ComWidget()
 {
@@ -19,7 +19,7 @@ ComWidget::~ComWidget()
 ----------------------------C H A N G E   L O G----------------------------
  * 
 **************************************************************************/
-void ComWidget::addSettingelements()
+void ComWidget::addSettings()
 {
     hLayoutUp = new QHBoxLayout;
     labelComName1st = new QLabel(tr(" 1st COM:"));
@@ -58,7 +58,16 @@ void ComWidget::addSettingelements()
     groupSetting->setLayout(vLayoutMain);
 }
 
-void ComWidget::fillComboContent()
+/**C O M   W I D G E T . F I L L   C O M B O S*****************************
+ * Create: BY Huang Cheng(yelloworangecc@icloud.com) ON 201848
+ * Description: 初始化界面中下拉框的可选项目
+ * Parameters: 
+   - void
+ * Return: void
+----------------------------C H A N G E   L O G----------------------------
+ * 
+**************************************************************************/
+void ComWidget::fillCombos()
 {
     comboDataBit->addItem("8", CS8);
     comboDataBit->addItem("7", CS7);

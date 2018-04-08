@@ -1,6 +1,8 @@
 #ifndef _VXCOM_HPP_
 #define _VXCOM_HPP_
+#include <string>
 #include <list>
+using std::string;
 using std::list;
 /* options to SIO_HW_OPTS_SET (ala POSIX), bitwise or'ed together */
 
@@ -25,10 +27,20 @@ public:
     VxCom(){}
     ~VxCom(){}
 
+    static const list<string>& enumSettingPort();
+    static const list<string>& enumSettingBoundRate();
+    static const list<string>& enumSettingDataBit();
+    static const list<string>& enumSettingStopBit();
+    static const list<string>& enumSettingParity();
+
 private:
-    //TODO1:提供一个获取支持配置的接口供界面进行初始化
-    //TODO2:设置swOpts成员变量
-    //TODO3:提供操作swOpts成员变量的接口(CSX,STOPB,PARENB,PARODD)
+    static list<string> listPort;
+    static list<string> listBoundRate;
+    static list<string> listDataBit;
+    static list<string> listStopBit;
+
+    //TODO2:设置hzwOpts成员变量
+    //TODO3:提供操作wwOpts成员变量的接口(CSX,STOPB,PARENB,PARODD)
 };
 
 #endif
