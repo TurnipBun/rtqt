@@ -18,22 +18,36 @@ public:
     QComboBox *comboComName2nd;
     
     QHBoxLayout *hLayoutDown;
-    QLabel *labelBoudRate;
+    QLabel *labelBaudRate;
     QLabel *labelDataBit;
     QLabel *labelStopBit;
     QLabel *labelParity;
-    QComboBox *comboBoudRate;
+    QComboBox *comboBaudRate;
     QComboBox *comboDataBit;
     QComboBox *comboStopBit;
     QComboBox *comboParity;
     
     QVBoxLayout *vLayoutMain;
+
+
+public slots:
+    void onPushOpenClicked();
+    void onPushCloseClicked();
+    void onPushAutoClicked();
+    void onPushSend1stClicked();
+    void onPushSend2ndClicked();
+
 private:
-    
     void addSettings();
     void fillCombos();
+    void connectSignalToSlot();
+    int initComs(const string& com1stName, const string& com2ndName,
+                         int baudRate, int dataBit, int stopBit, int parity);
+    int clearComs();
 
-    VxCom * vxCom;
+    VxCom * com1st;
+    VxCom * com2nd;
+    QMessageBox msgBox;
 };
 
 

@@ -1,9 +1,9 @@
 #ifndef _VXCOM_HPP_
 #define _VXCOM_HPP_
 #include <string>
-#include <list>
+#include <map>
 using std::string;
-using std::list;
+using std::map;
 /* options to SIO_HW_OPTS_SET (ala POSIX), bitwise or'ed together */
 
 #define CLOCAL		0x1	/* ignore modem status lines */
@@ -20,27 +20,42 @@ using std::list;
 #define PARENB		0x40	/* parity detection enabled (else disabled) */
 #define PARODD		0x80	/* odd parity  (else even) */
 
+#define COM_SUC 0
+#define COM_ERR -1
+#define COM_ERR_OPEN -2
+#define COM_ERR_IOCTL -3
 
 class VxCom
 {
 public:
-    VxCom(){}
-    ~VxCom(){}
+    VxCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity);
+    ~VxCom();
 
-    static const list<string>& enumSettingPort();
-    static const list<string>& enumSettingBoundRate();
-    static const list<string>& enumSettingDataBit();
-    static const list<string>& enumSettingStopBit();
-    static const list<string>& enumSettingParity();
+    static const map<string,int>& enumSettingPort();
+    static const map<string,int>& enumSettingBaudRate();
+    static const map<string,int>& enumSettingDataBit();
+    static const map<string,int>& enumSettingStopBit();
+    static const map<string,int>& enumSettingParity();
+
+    int open();
+    void close();
 
 private:
-    static list<string> listPort;
-    static list<string> listBoundRate;
-    static list<string> listDataBit;
-    static list<string> listStopBit;
+    static map<string,int> mapPort;
+    static map<string,int> mapBaudRate;
+    static map<string,int> mapDataBit;
+    static map<string,int> mapStopBit;
+    static map<string,int> mapParity;
 
-    //TODO2:设置hzwOpts成员变量
-    //TODO3:提供操作wwOpts成员变量的接口(CSX,STOPB,PARENB,PARODD)
+    struct 
+    {
+        string portName;
+        int baudRate;
+        int dataBit;
+        int stopBit;
+        int parity;
+    } settings;
+    int fd;
 };
 
 #endif
