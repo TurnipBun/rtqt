@@ -84,12 +84,14 @@ VxCom::~VxCom()
 int VxCom::open()
 {
     fd = ::open(settings.portName.c_str(),O_RDWR,0);
-    if (fd == ERROR) return COM_ERR_OPEN;
-    if (0 != ::ioctl(fd,FIOBAUDRATE, settings.baudRate)) return COM_ERR_IOCTL;
-    if (0 != ::ioctl(fd,SIO_HW_OPTS_SET,(CLOCAL|CREAD|settings.dataBit)&~(HUPCL|settings.stopBit|settings.parity))) return COM_ERR_IOCTL;
+    if (ERROR == fd) return COM_ERR_OPEN;
+    if (ERROR == ::ioctl(fd,FIOSETOPTIONS,OPT_RAW)) return COM_ERR_IOCTL;
+    if (ERROR == ::ioctl(fd,FIOBAUDRATE, settings.baudRate)) return COM_ERR_IOCTL;
+    if (ERROR == ::ioctl(fd,SIO_HW_OPTS_SET,(CLOCAL|CREAD|settings.dataBit)&~(HUPCL|settings.stopBit|settings.parity))) return COM_ERR_IOCTL;
     return COM_SUC;
 }
 
 void VxCom::close()
 {
+    ::close(fd);
 }

@@ -23,7 +23,7 @@ void ComWidget::onPushOpenClicked()
         return;
     }
 
-    int baudRate = comboBoudRate->itemData(comboBoudRate->currentIndex()).toInt();
+    int baudRate = comboBaudRate->itemData(comboBaudRate->currentIndex()).toInt();
     int dataBit = comboDataBit->itemData(comboDataBit->currentIndex()).toInt();
     int stopBit = comboStopBit->itemData(comboStopBit->currentIndex()).toInt();
     int parity = comboParity->itemData(comboParity->currentIndex()).toInt();
@@ -37,7 +37,7 @@ void ComWidget::onPushOpenClicked()
 
 void ComWidget::onPushCloseClicked()
 {
-
+    clearComs();
 }
 
 void ComWidget::onPushAutoClicked()
@@ -85,16 +85,16 @@ void ComWidget::addSettings()
     hLayoutUp->insertStretch(-1);
     
     hLayoutDown = new QHBoxLayout;
-    labelBoudRate = new QLabel(tr(" Boud Rate:"));
+    labelBaudRate = new QLabel(tr(" Boud Rate:"));
     labelDataBit = new QLabel(tr(" Data Bit:"));
     labelStopBit = new QLabel(tr(" Stop Bit:"));
     labelParity = new QLabel(tr(" Parity:"));
-    comboBoudRate = new QComboBox;
+    comboBaudRate = new QComboBox;
     comboDataBit = new QComboBox;
     comboStopBit = new QComboBox;
     comboParity = new QComboBox;
-    hLayoutDown->addWidget(labelBoudRate);
-    hLayoutDown->addWidget(comboBoudRate);
+    hLayoutDown->addWidget(labelBaudRate);
+    hLayoutDown->addWidget(comboBaudRate);
     hLayoutDown->addWidget(labelDataBit);
     hLayoutDown->addWidget(comboDataBit);
     hLayoutDown->addWidget(labelStopBit);

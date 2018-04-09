@@ -39,6 +39,9 @@ public:
 
     int open();
     void close();
+    int read(const char *buf, int& len);
+    int write(const char *data, int& len);
+    bool compare(char *data, int len);
 
 private:
     static map<string,int> mapPort;
@@ -55,7 +58,9 @@ private:
         int stopBit;
         int parity;
     } settings;
+    
     int fd;
+    char *lastWrite;
 };
 
 #endif
