@@ -38,6 +38,13 @@ public slots:
 	void setTextLineSend2nd(const string& text);
 	void setTextLineRecv1st(const string& text);
 	void setTextLineRecv2nd(const string& text);
+
+    void setLcdSendCount1st(int count);
+    void setLcdSendCount2nd(int count);
+    void setLcdLostRate1st(double rate);
+    void setLcdLostRate2nd(double rate);
+    void setLcdErroRate1st(double rate);
+    void setLcdErroRate2nd(double rate);
     
 //private:
 };

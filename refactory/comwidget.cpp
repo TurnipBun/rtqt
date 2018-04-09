@@ -1,4 +1,6 @@
 #include "comwidget.hpp"
+#include "os.hpp"
+#include "log.hpp"
 
 ComWidget::ComWidget()
     :com1st(NULL),com2nd(NULL)
@@ -6,13 +8,16 @@ ComWidget::ComWidget()
     addSettings();
     fillCombos();
     connectSignalToSlot();
+    initGlobalLog();
 }
 ComWidget::~ComWidget()
 {
+    delete g_log;
 }
 
 void ComWidget::onPushOpenClicked()
 {
+    int ret;
     string com1stName = comboComName1st->currentText().toStdString();
     string com2ndName = comboComName2nd->currentText().toStdString();
     if (com1stName == com2ndName)
@@ -28,11 +33,17 @@ void ComWidget::onPushOpenClicked()
     int stopBit = comboStopBit->itemData(comboStopBit->currentIndex()).toInt();
     int parity = comboParity->itemData(comboParity->currentIndex()).toInt();
     
-    if (COM_SUC != initComs(com1stName, com2ndName, baudRate, dataBit, stopBit, parity))
+    ret = initComs(com1stName, com2ndName, baudRate, dataBit, stopBit, parity);
+    if (COM_SUC != ret)
     {
+        msgBox.setText("ERROR: call initComs failed");
+        msgBox.exec();
         clearComs();
         setEnabledAtClose();
+        return;
     }
+    setTextLineSend1st(OS::genVisibleString(8));
+    setTextLineSend2nd(OS::genVisibleString(8));
 }
 
 void ComWidget::onPushCloseClicked()
@@ -42,24 +53,98 @@ void ComWidget::onPushCloseClicked()
 
 void ComWidget::onPushAutoClicked()
 {
-    QMessageBox msgBox;
     msgBox.setText("button auto clicked.");
     msgBox.exec();
 }
 
 void ComWidget::onPushSend1stClicked()
 {
-    QMessageBox msgBox;
-    msgBox.setText("button first-send clicked.");
+    int ret;
+    string sendData = getTextLineSend1st();
+    (*g_log)<< "com1st sending data: " << sendData << ENDL;
+    ret = com1st->send(sendData);
+    if (ret != COM_SUC)
+    {
+        msgBox.setText(tr("ERROR: com1st send data failed: %1").arg(ret));
+        msgBox.exec();
+        return;
+    }
+    msgBox.setText(tr("com1st send data success: %1").arg(QString::fromStdString(sendData)));
     msgBox.exec();
+    emit com1stSended();
+    setTextLineSend1st(OS::genVisibleString(8));
 }
 
 void ComWidget::onPushSend2ndClicked()
 {
-    QMessageBox msgBox;
-    msgBox.setText("button second-send clicked.");
+    int ret;
+    string sendData = getTextLineSend2nd();
+    (*g_log)<< "com2nd sending data: " << sendData << ENDL;
+    ret = com2nd->send(sendData);
+    if (ret != COM_SUC)
+    {
+        msgBox.setText(tr("ERROR: com2nd send data failed: %1").arg(ret));
+        msgBox.exec();
+        return;
+    }
+    msgBox.setText(tr("com2nd send data success: %1").arg(QString::fromStdString(sendData)));
     msgBox.exec();
+    emit com2ndSended();
+    setTextLineSend2nd(OS::genVisibleString(8));
 }
+
+void ComWidget::onCom1stSended()
+{
+    int ret;
+    string recvData;
+    unsigned int sendNum;
+    double lostRate,erroRate;
+
+    ret = com2nd->recv(recvData);
+    if (ret == COM_SUC)
+    {
+        msgBox.setText(tr("com2nd recv data success: %1").arg(QString::fromStdString(recvData)));
+        msgBox.exec();
+        (*g_log)<< "com2nd recv data: " << recvData << ENDL;
+        com1st->compare(recvData);
+        setTextLineRecv2nd(recvData);
+
+        sendNum = com1st->getSendCount();
+        lostRate = (sendNum == 0) ? 0.0 : 1 - 1.0 * com2nd->getRecvCount() / sendNum;
+        erroRate = (sendNum == 0) ? 0.0 : 1.0 * com1st->getErroCount() / sendNum;
+
+        setLcdSendCount1st(sendNum);
+        setLcdLostRate1st(lostRate);
+        setLcdErroRate1st(erroRate);
+    } 
+}
+
+void ComWidget::onCom2ndSended()
+{
+    int ret;
+    string recvData;
+    unsigned int sendNum;
+    double lostRate,erroRate;
+
+    ret = com1st->recv(recvData);
+    if (ret == COM_SUC)
+    {
+        msgBox.setText(tr("com1st recv data success: %1").arg(QString::fromStdString(recvData)));
+        msgBox.exec();
+        (*g_log)<< "com1st recv data: " << recvData << ENDL;
+        com2nd->compare(recvData);
+        setTextLineRecv1st(recvData);
+
+        sendNum = com2nd->getSendCount();
+        lostRate = (sendNum == 0) ? 0.0 : 1 - 1.0 * com1st->getRecvCount() / sendNum;
+        erroRate = (sendNum == 0) ? 0.0 : 1.0 * com2nd->getErroCount() / sendNum;
+        
+        setLcdSendCount2nd(sendNum);
+        setLcdLostRate2nd(lostRate);
+        setLcdErroRate2nd(erroRate);
+    }
+}
+
 
 /**C O M   W I D G E T . A D D   S E T T I N G E L E M E N T S*************
  * Create: BY Huang Cheng(turnipbun@icloud.com) ON 201844
@@ -129,10 +214,10 @@ void ComWidget::fillCombos()
         comboComName2nd->addItem(QString::fromStdString(iter->first), iter->second);
     }
 
-    const map<string,int>& mapBoudRate = VxCom::enumSettingBaudRate();
-    for(iter=mapBoudRate.begin();iter!=mapBoudRate.end();++iter)
+    const map<string,int>& mapBaudRate = VxCom::enumSettingBaudRate();
+    for(iter=mapBaudRate.begin();iter!=mapBaudRate.end();++iter)
     {
-        comboBoudRate->addItem(QString::fromStdString(iter->first), iter->second);
+        comboBaudRate->addItem(QString::fromStdString(iter->first), iter->second);
     }
 
     const map<string,int>& mapDataBit = VxCom::enumSettingDataBit();
@@ -161,6 +246,8 @@ void ComWidget::connectSignalToSlot()
     connect(this,SIGNAL(pushAutoClicked()),this,SLOT(onPushAutoClicked()));
     connect(this,SIGNAL(pushSend1stClicked()),this,SLOT(onPushSend1stClicked()));
     connect(this,SIGNAL(pushSend2ndClicked()),this,SLOT(onPushSend2ndClicked()));
+    connect(this,SIGNAL(com1stSended()),this,SLOT(onCom1stSended()));
+    connect(this,SIGNAL(com2ndSended()),this,SLOT(onCom2ndSended()));
 }
 
 int ComWidget::initComs(const string& com1stName, const string& com2ndName,
@@ -177,7 +264,7 @@ int ComWidget::initComs(const string& com1stName, const string& com2ndName,
     return COM_SUC;
 }
                          
-int ComWidget::clearComs()
+void ComWidget::clearComs()
 {
     com1st->close();
     com2nd->close();

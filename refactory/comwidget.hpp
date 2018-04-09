@@ -29,6 +29,9 @@ public:
     
     QVBoxLayout *vLayoutMain;
 
+signals:
+    void com1stSended();
+    void com2ndSended();
 
 public slots:
     void onPushOpenClicked();
@@ -37,13 +40,16 @@ public slots:
     void onPushSend1stClicked();
     void onPushSend2ndClicked();
 
+    void onCom1stSended();
+    void onCom2ndSended();
+
 private:
     void addSettings();
     void fillCombos();
     void connectSignalToSlot();
     int initComs(const string& com1stName, const string& com2ndName,
                          int baudRate, int dataBit, int stopBit, int parity);
-    int clearComs();
+    void clearComs();
 
     VxCom * com1st;
     VxCom * com2nd;
