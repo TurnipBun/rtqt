@@ -71,6 +71,9 @@ void ComWidget::onPushSend1stClicked()
     }
     //msgBox.setText(tr("com1st send data success: %1").arg(QString::fromStdString(sendData)));
     //msgBox.exec();
+#ifdef VXWORKS
+    OS::wait(1);
+#endif
     emit com1stSended();
     setTextLineSend1st(OS::genVisibleString(8));
 }
