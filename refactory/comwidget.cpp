@@ -69,8 +69,8 @@ void ComWidget::onPushSend1stClicked()
         msgBox.exec();
         return;
     }
-    msgBox.setText(tr("com1st send data success: %1").arg(QString::fromStdString(sendData)));
-    msgBox.exec();
+    //msgBox.setText(tr("com1st send data success: %1").arg(QString::fromStdString(sendData)));
+    //msgBox.exec();
     emit com1stSended();
     setTextLineSend1st(OS::genVisibleString(8));
 }
@@ -87,8 +87,8 @@ void ComWidget::onPushSend2ndClicked()
         msgBox.exec();
         return;
     }
-    msgBox.setText(tr("com2nd send data success: %1").arg(QString::fromStdString(sendData)));
-    msgBox.exec();
+    //msgBox.setText(tr("com2nd send data success: %1").arg(QString::fromStdString(sendData)));
+    //msgBox.exec();
     emit com2ndSended();
     setTextLineSend2nd(OS::genVisibleString(8));
 }
@@ -103,8 +103,8 @@ void ComWidget::onCom1stSended()
     ret = com2nd->recv(recvData);
     if (ret == COM_SUC)
     {
-        msgBox.setText(tr("com2nd recv data success: %1").arg(QString::fromStdString(recvData)));
-        msgBox.exec();
+        //msgBox.setText(tr("com2nd recv data success: %1").arg(QString::fromStdString(recvData)));
+        //msgBox.exec();
         (*g_log)<< "com2nd recv data: " << recvData << ENDL;
         com1st->compare(recvData);
         setTextLineRecv2nd(recvData);
@@ -129,8 +129,8 @@ void ComWidget::onCom2ndSended()
     ret = com1st->recv(recvData);
     if (ret == COM_SUC)
     {
-        msgBox.setText(tr("com1st recv data success: %1").arg(QString::fromStdString(recvData)));
-        msgBox.exec();
+        //msgBox.setText(tr("com1st recv data success: %1").arg(QString::fromStdString(recvData)));
+        //msgBox.exec();
         (*g_log)<< "com1st recv data: " << recvData << ENDL;
         com2nd->compare(recvData);
         setTextLineRecv1st(recvData);
@@ -207,32 +207,32 @@ void ComWidget::fillCombos()
 {
     map<string,int>::const_iterator iter;
     
-    const map<string,int>& mapPort = VxCom::enumSettingPort();
+    const map<string,int>& mapPort = DEF_COM::enumSettingPort();
     for(iter=mapPort.begin();iter!=mapPort.end();++iter)
     {
         comboComName1st->addItem(QString::fromStdString(iter->first), iter->second);
         comboComName2nd->addItem(QString::fromStdString(iter->first), iter->second);
     }
 
-    const map<string,int>& mapBaudRate = VxCom::enumSettingBaudRate();
+    const map<string,int>& mapBaudRate = DEF_COM::enumSettingBaudRate();
     for(iter=mapBaudRate.begin();iter!=mapBaudRate.end();++iter)
     {
         comboBaudRate->addItem(QString::fromStdString(iter->first), iter->second);
     }
 
-    const map<string,int>& mapDataBit = VxCom::enumSettingDataBit();
+    const map<string,int>& mapDataBit = DEF_COM::enumSettingDataBit();
     for(iter=mapDataBit.begin();iter!=mapDataBit.end();++iter)
     {
         comboDataBit->addItem(QString::fromStdString(iter->first), iter->second);
     }
 
-    const map<string,int>& mapStopBit = VxCom::enumSettingStopBit();
+    const map<string,int>& mapStopBit = DEF_COM::enumSettingStopBit();
     for(iter=mapStopBit.begin();iter!=mapStopBit.end();++iter)
     {
         comboStopBit->addItem(QString::fromStdString(iter->first), iter->second);
     }
 
-    const map<string,int>& mapParity = VxCom::enumSettingParity();
+    const map<string,int>& mapParity = DEF_COM::enumSettingParity();
     for(iter=mapParity.begin();iter!=mapParity.end();++iter)
     {
         comboParity->addItem(QString::fromStdString(iter->first), iter->second);
@@ -254,8 +254,8 @@ int ComWidget::initComs(const string& com1stName, const string& com2ndName,
                          int baudRate, int dataBit, int stopBit, int parity)
 {
     
-    com1st = new VxCom(com1stName,baudRate,dataBit,stopBit,parity);
-    com2nd = new VxCom(com2ndName,baudRate,dataBit,stopBit,parity);
+    com1st = new DEF_COM(com1stName,baudRate,dataBit,stopBit,parity);
+    com2nd = new DEF_COM(com2ndName,baudRate,dataBit,stopBit,parity);
     int ret;
     ret = com1st->open();
     if (COM_SUC != ret) return ret;

@@ -2,7 +2,14 @@
 #define _COMWIDGET_HPP_
 #include <QtGui>
 #include "modulewidget.hpp"
+
+#ifdef VXWORKS
 #include "vxcom.hpp"
+#define DEF_COM VxCom
+#else
+#include "wincom.hpp"
+#define DEF_COM WinCom
+#endif
 
 class ComWidget : public ModuleWidget
 {
@@ -51,8 +58,8 @@ private:
                          int baudRate, int dataBit, int stopBit, int parity);
     void clearComs();
 
-    VxCom * com1st;
-    VxCom * com2nd;
+    Com * com1st;
+    Com * com2nd;
     QMessageBox msgBox;
 };
 

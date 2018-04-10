@@ -8,14 +8,15 @@ UID_DIR = .
 # Input
 HEADERS += ./os.hpp \
 		   ./log.hpp \
-		   ./vxcom.hpp \
 		   ./modulewidget.hpp \
+		   ./com.hpp \
+		   ./wincom.hpp \
 		   ./comwidget.hpp
 
 SOURCES += ./os.cpp \
 		   ./log.cpp \
-           ./vxcom.cpp \
            ./modulewidget.cpp \
+		   ./wincom.cpp \
 		   ./comwidget.cpp \
            ./main.cpp
 
