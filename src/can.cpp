@@ -1,133 +1,122 @@
-#include <pthread.h>
 #include <QtGui>
-
 #include "os.hpp"
 #include "can.hpp"
 
-using std::string;
+map<string,int> Can::mapDevice;
+map<string,int> Can::mapBaudRate;
 
-CAN::CAN(int ch)
-    :channel(ch), sendCount(0), recvCount(0), errCount(0), isInited(false), isHeadSetted(false)
+const map<string,int>& Can::enumSettingDevice()
 {
-    memset(&sendMsg, 0, sizeof(CANRMMsg));
-    memset(&recvMsg, 0, sizeof(CANRMMsg));
-}
-
-CAN::~CAN()
-{
-    if (isInited)
+    if (mapDevice.empty())
     {
-        close();
+        mapDevice.insert(pair<string,int>("0",0));
+        mapDevice.insert(pair<string,int>("1",1));
+        mapDevice.insert(pair<string,int>("2",2));
     }
+    return mapDevice;
 }
 
-/*初始化通道*/
-int CAN::init(int rate, int id, int mask)
+const map<string,int>& Can::enumSettingBaudRate()
 {
+    if (mapBaudRate.empty())
+    {
+        mapBaudRate.insert(pair<string,int>("10",10));
+        mapBaudRate.insert(pair<string,int>("50",50));
+        mapBaudRate.insert(pair<string,int>("100",100));
+        mapBaudRate.insert(pair<string,int>("125",125));
+        mapBaudRate.insert(pair<string,int>("200",200));
+        mapBaudRate.insert(pair<string,int>("250",250));
+        mapBaudRate.insert(pair<string,int>("400",400));
+        mapBaudRate.insert(pair<string,int>("500",500));
+        mapBaudRate.insert(pair<string,int>("800",800));
+        mapBaudRate.insert(pair<string,int>("1000",1000));
+    }
+    return mapBaudRate;
+}
 
+Can::Can(int channel,int rate)
+    :ch(channel),baudRate(rate)
+{
+    lastSend = new char[COMMBUF_LEN];
+    readBuf = new char[COMMBUF_LEN];
+}
+
+Can::~Can()
+{
+    delete lastSend;
+    delete readBuf;
+}
+
+int Can::open()
+{
     CANRMInitInBuf conf;
+    
+    if (CAN_ERR == CANOpen(ch))
+    {
+        return COMM_ERR_OPEN;
+    }
+    CANReset(ch);
 
-    //检查是否已初始化
-    if (isInited)
-    {
-        return CAN_SUC;
-    }
-    isInited = true;
-    
-    //打开通道
-    if (CAN_ERR == CANOpen(channel))
-    {
-        return CAN_ERR;
-    }
-    
-    
-    if (CAN_ERR == CANReset(channel))
-    {
-    	CANClose(channel);
-    	return CAN_ERR;
-    }
-
-    //初始化通道
     conf.FrameFormat = 0;
-    conf.LocalID = id;
-    conf.LocalIDMask = mask;
-    conf.BaudRate = rate;
+    conf.LocalID = CAN_DEFAULT_LOCALID;
+    conf.LocalIDMask = CAN_DEFAULT_MASK;
+    conf.BaudRate = baudRate;
     conf.Reserved1=1;
     conf.Reserved2=0;
     conf.Reserved3=0;
     conf.Reserved4=0;
 
-    if (CAN_ERR == CANInit(channel, conf))
+    if (CAN_ERR == CANInit(ch, conf))
     {
-    	CANClose(channel);
-        return CAN_ERR;
+        CANClose(ch);
+        return COMM_ERR_INIT;
     }
 
-    return CAN_SUC;
+    return COMM_SUC;
 }
 
-/*设置消息头*/
-void CAN::setMsgHead(int id, int dataLen)
+void Can::close()
 {
-    sendMsg.FrameFormat = 0;
-    sendMsg.RTR = 0;
-    sendMsg.ID = id;
-    sendMsg.DataLenCode = dataLen;
-
-    isHeadSetted = true;//消息头已设置状态
+    CANClose(ch);
 }
-int CAN::send(string msg)
+
+int Can::send(const string& data)
 {
-    int i;
+    CANRMMsg *msg = (CANRMMsg *)lastSend;
+    int len = data.size();
+    memset(lastSend,0,COMMBUF_LEN);
 
-    //检查消息头是否设置
-    if (!isHeadSetted)
-    {
-        return CAN_ERR;
-    }
+    msg->FrameFormat = 0;
+    msg->RTR = 0;
+    msg->ID = CAN_DEFAULT_MSGID;
+    msg->DataLenCode = len;
+    memcpy(msg->Data,data.c_str(),len);
 
-    //填充消息
-    memset(sendMsg.Data,0,8);
-    for (i = 0; i < 8; i++)
+    if (CAN_SUC != CANSend(ch, *msg))
     {
-        if (msg[i] == '\0') break;
-        sendMsg.Data[i] = msg[i];
-    }
-
-    //发送消息
-    if (CAN_ERR == CANSend(channel, sendMsg))
-    {
-        return CAN_ERR;
+        return COMM_ERR_SEND;
     }
     ++sendCount;
-    return CAN_SUC;
+    return COMM_SUC;
 }
 
-/*接收数据*/
-int CAN::recv()
+int Can::recv(string& data)
 {
-    int ret = CANReceive(channel, &recvMsg);
-    if (ret == CAN_SUC) ++recvCount;
-    return ret;
+    CANRMMsg *msg = (CANRMMsg *)readBuf;
+    memset(readBuf,'a',COMMBUF_LEN);
+    int ret = CANReceive(ch, msg);
+    if (CAN_SUC != ret) return COMM_ERR_RECV;
+    msg->Data[msg->DataLenCode] = '\0';
+    data = (char*)msg->Data;
+    ++recvCount;
+    return COMM_SUC;
 }
 
-/*关闭通道*/
-int CAN::close()
+bool Can::compare(const string &data)
 {
-    int ret = CANClose(channel);
-    if (ret == CAN_SUC)
-    {
-        isInited = false;//恢复到未初始化状态
-    }
-    return ret;
-}
-
-/*检查数据是否为所发送数据*/
-bool CAN::checkMsg(const CANRMMsg &msg)
-{
-    bool ret = (0 == memcmp(&sendMsg, &msg, sizeof(CANRMMsg)));
-    if (ret == false) ++errCount;
-    return ret;
+    if(data == lastSend) return true;
+    ++erroCount;
+    return false;
 }
 
 

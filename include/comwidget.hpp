@@ -11,6 +11,7 @@
 #define DEF_COM WinCom
 #endif
 
+
 class ComWidget : public ModuleWidget
 {
     Q_OBJECT
@@ -36,31 +37,16 @@ public:
     
     QVBoxLayout *vLayoutMain;
 
-signals:
-    void com1stSended();
-    void com2ndSended();
-
 public slots:
     void onPushOpenClicked();
-    void onPushCloseClicked();
-    void onPushAutoClicked();
-    void onPushSend1stClicked();
-    void onPushSend2ndClicked();
-
-    void onCom1stSended();
-    void onCom2ndSended();
 
 private:
     void addSettings();
     void fillCombos();
     void connectSignalToSlot();
-    int initComs(const string& com1stName, const string& com2ndName,
+    int initComms(const string& com1stName, const string& com2ndName,
                          int baudRate, int dataBit, int stopBit, int parity);
-    void clearComs();
 
-    Com * com1st;
-    Com * com2nd;
-    QMessageBox msgBox;
 };
 
 

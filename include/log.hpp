@@ -69,19 +69,7 @@ private:
     static const string defaultFileName;
 };
 
-/*工厂类,支持创建不同类型的多个log*/
-class LogFactory
-{
-public:
-    static LogFactory *getFactory();
-    Log *createLog(LogType type);
-private:
-    LogFactory(){};
-    LogFactory(const LogFactory&){};
-    LogFactory& operator=(const LogFactory&){return *this;}
-    ~LogFactory(){};
-
-    static LogFactory* pInst;
-};
+extern Log *g_log;
+void initGlobalLog();
 
 #endif /* _LOG_HPP_ */

@@ -2,25 +2,12 @@
 #define _WINCOM_HPP_
 #include <windows.h>
 #include <winbase.h>
-#include "com.hpp"
+#include <map>
+#include "comm.hpp"
 
+using std::map;
+using std::pair;
 #define REG_DARA_MAXLEN 255
-
-/**G E T   W I N   C O M   L I S T*****************************************
- * Create: BY Huang Cheng(turnipbun@icloud.com) ON 2018328
- * Description: windows平台下获取可用的COM设备列表
- * Members: 
-   - 
-----------------------------C H A N G E   L O G----------------------------
- * 
-**************************************************************************/
-class GetWinComList : public GetComList
-{
-public:
-    list<string> &operator()();
-    ~GetWinComList(){}
-};
-
 
 /**W I N   C O M***********************************************************
  * Create: BY Huang Cheng(turnipbun@icloud.com) ON 2018327
@@ -30,28 +17,39 @@ public:
 ----------------------------C H A N G E   L O G----------------------------
  * 
 **************************************************************************/
-class WinCom : public COM
+class WinCom : public Comm
 {
 public:
-    WinCom(const string & comName, const string &strBoundRate, const string &strDataBit,
-             const string &strStopBit, const string &strParity);
-    ~WinCom();
-    int init();
-    void close();
-    int send(const char *data, unsigned int len);
-    int recv();
-    bool compare(const char *data);
+    static const map<string,int>& enumSettingPort();
+    static const map<string,int>& enumSettingBaudRate();
+    static const map<string,int>& enumSettingDataBit();
+    static const map<string,int>& enumSettingStopBit();
+    static const map<string,int>& enumSettingParity();
 
-    void setBaudRateByString(const string & strBaudRate);
-    void setDataBitByString(const string & strDataBit);
-    void setStopBitByString(const string & strStopBit);
-    void setParityByString(const string & strParity);
+    WinCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity);
+    ~WinCom();
+    
+    int open();
+    void close();
+    int send(const string& data);
+    int recv(string& data);
+    bool compare(const string& data);
+
     
 private:
-    int baudRate;
-    int dataBit;
-    int stopBit;
-    int parity;
+    static map<string,int> mapPort;
+    static map<string,int> mapBaudRate;
+    static map<string,int> mapDataBit;
+    static map<string,int> mapStopBit;
+    static map<string,int> mapParity;
+    struct 
+    {
+        string portName;
+        int baudRate;
+        int dataBit;
+        int stopBit;
+        int parity;
+    } settings;
     
     HANDLE comm;
     DWORD err;

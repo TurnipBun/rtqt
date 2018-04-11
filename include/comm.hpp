@@ -1,17 +1,19 @@
-#ifndef _COM_HPP_
-#define _COM_HPP_
+#ifndef _COMM_HPP_
+#define _COMM_HPP_
 #include <string>
 using std::string;
 
 
-#define COM_SUC 0
-#define COM_ERR -1
-#define COM_ERR_OPEN -2
-#define COM_ERR_IOCTL -3
-#define COM_ERR_SEND -4
-#define COM_ERR_RECV -5
+#define COMM_SUC 0
+#define COMM_ERR -1
+#define COMM_ERR_OPEN -2
+#define COMM_ERR_INIT -3
+#define COMM_ERR_IOCTL -4
+#define COMM_ERR_SEND -5
+#define COMM_ERR_RECV -6
 
-#define READBUF_LEN 32
+#define COMMBUF_LEN 32
+#define COMM_AUTO_TEST_NUM 100
 
 /**C O M*******************************************************************
  * Create: BY Huang Cheng(yelloworangecc@icloud.com) ON 2018410
@@ -21,11 +23,11 @@ using std::string;
 ----------------------------C H A N G E   L O G----------------------------
  * 
 **************************************************************************/
-class Com
+class Comm
 {
 public:
-    Com():lastSend(NULL),readBuf(NULL),sendCount(0),recvCount(0),erroCount(0){}
-    virtual ~Com(){}
+    Comm():lastSend(NULL),readBuf(NULL),sendCount(0),recvCount(0),erroCount(0){}
+    virtual ~Comm(){}
     
     virtual int open() = 0;
     virtual void close() = 0;
@@ -38,15 +40,6 @@ public:
     unsigned int getErroCount(){return erroCount;}
 
 protected:
-    
-    struct 
-    {
-        string portName;
-        int baudRate;
-        int dataBit;
-        int stopBit;
-        int parity;
-    } settings;
     
     char * lastSend;
     char * readBuf;

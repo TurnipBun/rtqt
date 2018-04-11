@@ -80,8 +80,8 @@ VxCom::VxCom(const string& portName, int baudRate, int dataBit, int stopBit, int
     settings.dataBit = dataBit;
     settings.stopBit = stopBit;
     settings.parity = parity;
-    lastSend = new char[READBUF_LEN];
-    readBuf = new char[READBUF_LEN];
+    lastSend = new char[COMMBUF_LEN];
+    readBuf = new char[COMMBUF_LEN];
 }
 
 VxCom::~VxCom()
@@ -93,13 +93,13 @@ VxCom::~VxCom()
 int VxCom::open()
 {
     fd = ::open(settings.portName.c_str(),O_RDWR,0);
-    if (ERROR == fd) return COM_ERR_OPEN;
-    if (ERROR == ::ioctl(fd,FIOSETOPTIONS,OPT_RAW)) return COM_ERR_IOCTL;
-    if (ERROR == ::ioctl(fd,FIOBAUDRATE, settings.baudRate)) return COM_ERR_IOCTL;
-    if (ERROR == ::ioctl(fd,SIO_HW_OPTS_SET,(CLOCAL|CREAD|settings.dataBit)&~(HUPCL|settings.stopBit|settings.parity))) return COM_ERR_IOCTL;
-    if (ERROR == ::ioctl(fd,FIOFLUSH,0)) return COM_ERR_IOCTL;
+    if (ERROR == fd) return COMM_ERR_OPEN;
+    if (ERROR == ::ioctl(fd,FIOSETOPTIONS,OPT_RAW)) return COMM_ERR_IOCTL;
+    if (ERROR == ::ioctl(fd,FIOBAUDRATE, settings.baudRate)) return COMM_ERR_IOCTL;
+    if (ERROR == ::ioctl(fd,SIO_HW_OPTS_SET,(CLOCAL|CREAD|settings.dataBit)&~(HUPCL|settings.stopBit|settings.parity))) return COMM_ERR_IOCTL;
+    if (ERROR == ::ioctl(fd,FIOFLUSH,0)) return COMM_ERR_IOCTL;
 
-    return COM_SUC;
+    return COMM_SUC;
 }
 
 void VxCom::close()
@@ -112,30 +112,30 @@ int VxCom::send(const string& data)
     int ret,len;
     len = data.size();
 
-    memset(lastSend,0,READBUF_LEN);
+    memset(lastSend,0,COMMBUF_LEN);
     memcpy(lastSend,data.c_str(),len);
     ret = ::write(fd,lastSend,len);
-    if (ret != len) return COM_ERR_SEND;
+    if (ret != len) return COMM_ERR_SEND;
 
     ++sendCount;
-    return COM_SUC;
+    return COMM_SUC;
 }
 
 int VxCom::recv(string& data)
 {
     int ret;
     unsigned int count;
-    if (ERROR == ioctl(fd,FIONREAD,&count)) return COM_ERR_IOCTL;
-    if (count == 0) return COM_ERR_RECV;
-    memset(readBuf,'a',READBUF_LEN);
-    readBuf[READBUF_LEN-1] = '\0';
-    ret = ::read(fd,readBuf,READBUF_LEN);
-    if (ret <= 0) return COM_ERR_RECV;
+    if (ERROR == ioctl(fd,FIONREAD,&count)) return COMM_ERR_IOCTL;
+    if (count == 0) return COMM_ERR_RECV;
+    memset(readBuf,'a',COMMBUF_LEN);
+    readBuf[COMMBUF_LEN-1] = '\0';
+    ret = ::read(fd,readBuf,COMMBUF_LEN);
+    if (ret <= 0) return COMM_ERR_RECV;
     readBuf[ret] = '\0';
     data = readBuf;
 
     ++recvCount;
-    return COM_SUC;
+    return COMM_SUC;
 }
 
 bool VxCom::compare(const string& data)

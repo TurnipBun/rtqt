@@ -6,23 +6,26 @@ MOC_DIR = .
 UID_DIR = .
 
 # Input
-HEADERS += ../include/can.hpp \
-           ../include/com.hpp \
-		   ../include/wincom.hpp \
-           ../include/os.hpp \
-           ../include/mainwindow.hpp \
+HEADERS += ../include/os.hpp \
 		   ../include/log.hpp \
-           ../3rdparty/include/DEF_P303.h \
-           ../3rdparty/include/EXPORT_P303.h
+		   ../include/comm.hpp \
+		   ../include/can.hpp \
+		   ../include/wincom.hpp \
+		   ../include/modulewidget.hpp \
+		   ../include/comwidget.hpp \
+		   ../include/canwidget.hpp \
+           ../include/mainwindow.hpp \
 
-SOURCES += ../src/can.cpp \
-           ../src/wincom.cpp \
-           ../src/os.cpp \
-		   ../src/mainwindow.cpp \
+SOURCES += ../src/os.cpp \
 		   ../src/log.cpp \
-		   main.cpp 
+		   ../src/can.cpp \
+           ../src/wincom.cpp \
+           ../src/modulewidget.cpp \
+		   ../src/comwidget.cpp \
+		   ../src/canwidget.cpp \
+		   ../src/mainwindow.cpp \
+		   ./main.cpp 
 
-FORMS += ../mainwindow.ui
+FORMS += ../ui/formmodule.ui
 RESOURCES += ../rtqt.qrc
-
-LIBS += -pthread -L../3rdparty/lib -lP303RT
+LIBS +=  -L../3rdparty/lib -lP303RT

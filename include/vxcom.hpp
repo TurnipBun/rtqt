@@ -1,10 +1,10 @@
 #ifndef _VXCOM_HPP_
 #define _VXCOM_HPP_
 #include <map>
-#include "com.hpp"
+#include "comm.hpp"
 using std::map;
 
-class VxCom : public Com
+class VxCom : public Comm
 {
 public:
     static const map<string,int>& enumSettingPort();
@@ -28,6 +28,14 @@ private:
     static map<string,int> mapDataBit;
     static map<string,int> mapStopBit;
     static map<string,int> mapParity;
+    struct 
+    {
+        string portName;
+        int baudRate;
+        int dataBit;
+        int stopBit;
+        int parity;
+    } settings;
     
     int fd;
 };

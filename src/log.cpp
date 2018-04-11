@@ -3,6 +3,16 @@
 #include <cstring>
 #include "log.hpp"
 
+Log* g_log = NULL;
+
+void initGlobalLog()
+{
+    g_log = new FileLog();
+    g_log->init();
+    (*g_log) << "init program..." << ENDL;
+}
+
+
 /************************FileLog*********************************/
 
 #ifdef VXWORKS
@@ -126,22 +136,4 @@ void FileLog::addToBuf(const char * pText)
     pPtr += strlen(pText);
 }
 
-/*********************LogFactory************************/
-
-LogFactory *LogFactory::pInst = NULL;
-
-LogFactory *LogFactory::getFactory()
-{
-    if (NULL == pInst)
-    {
-        pInst = new LogFactory();
-    }
-    return pInst;
-}
-
-Log *LogFactory::createLog(LogType type)
-{
-    if (IS_TO_FILE_ON(type)) return new FileLog();
-    else return NULL;
-}
 

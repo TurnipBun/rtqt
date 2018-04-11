@@ -32,13 +32,16 @@
 *.app
 
 # Directory
-debug/
-release/
+*debug
+*release
+*Debug
+*Release
 
 # log file
 *.txt
 *.log
 
-# macos tempfile
+# tempfile
 .DS_Store
 Makefile*
+ui_*
