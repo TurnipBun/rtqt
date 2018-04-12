@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>602</width>
+    <height>522</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,7 +61,7 @@
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>发送数据</string>
+           <string>待发数据</string>
           </property>
          </widget>
         </item>
@@ -135,7 +135,7 @@
         <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>发送数据</string>
+           <string>待发数据</string>
           </property>
          </widget>
         </item>

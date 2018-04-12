@@ -1,11 +1,17 @@
 #include <cstdlib>
 #include <ctime>
-#include <unistd.h>
+#ifdef VXWORKS
+#else
+#include <Windows.h>
+#endif
 #include "os.hpp"
 
-void OS::wait(unsigned int seconds)
+void OS::wait(unsigned int ms)
 {
-    sleep(seconds);
+#ifdef VXWORKS
+#else
+    Sleep(ms);
+#endif
 }
 
 char OS::genVisibleChar()

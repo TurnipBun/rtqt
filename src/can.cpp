@@ -114,7 +114,7 @@ int Can::recv(string& data)
 
 bool Can::compare(const string &data)
 {
-    if(data == lastSend) return true;
+    if(data == (lastSend+8)) return true;
     ++erroCount;
     return false;
 }

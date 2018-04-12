@@ -6,7 +6,7 @@ using std::string;
 class OS
 {
 public:
-	static void wait(unsigned int seconds);
+    static void wait(unsigned int ms);
     static char genVisibleChar();
     static string genVisibleString(int len);
 };

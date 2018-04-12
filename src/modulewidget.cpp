@@ -147,9 +147,8 @@ void ModuleWidget::onPushSend1stClicked()
         msgBox.exec();
         return;
     }
-#ifdef VXWORKS
-    OS::wait(1);
-#endif
+    OS::wait(20);
+
     emit comm1stSended();
     setTextLineSend1st(OS::genVisibleString(8));
 }
@@ -166,6 +165,8 @@ void ModuleWidget::onPushSend2ndClicked()
         msgBox.exec();
         return;
     }
+    OS::wait(20);
+    
     emit comm2ndSended();
     setTextLineSend2nd(OS::genVisibleString(8));
 }
@@ -191,7 +192,8 @@ void ModuleWidget::onComm1stSended()
         setLcdSendCount1st(sendNum);
         setLcdLostRate1st(lostRate);
         setLcdErroRate1st(erroRate);
-    } 
+    }
+    (*g_log)<< "comm2nd recv failed... " << ENDL;
 }
 
 void ModuleWidget::onComm2ndSended()

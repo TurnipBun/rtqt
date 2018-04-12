@@ -122,8 +122,8 @@ int WinCom::open()
 
     COMMTIMEOUTS commTimeouts;
     memset(&commTimeouts,0,sizeof(COMMTIMEOUTS));
-    commTimeouts.ReadIntervalTimeout = 20;
-    commTimeouts.ReadTotalTimeoutConstant = 20;
+    commTimeouts.ReadIntervalTimeout = 30;
+    commTimeouts.ReadTotalTimeoutConstant = 40;
     SetCommTimeouts(comm, &commTimeouts);
 
     return COMM_SUC;
