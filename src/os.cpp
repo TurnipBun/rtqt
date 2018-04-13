@@ -1,6 +1,8 @@
 #include <cstdlib>
 #include <ctime>
 #ifdef VXWORKS
+#include <taskLib.h>
+#include <sysLib.h>
 #else
 #include <Windows.h>
 #endif
@@ -9,6 +11,7 @@
 void OS::wait(unsigned int ms)
 {
 #ifdef VXWORKS
+	taskDelay(sysClkRateGet()/50);
 #else
     Sleep(ms);
 #endif
