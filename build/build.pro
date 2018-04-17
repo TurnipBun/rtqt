@@ -3,7 +3,7 @@ TARGET = rtqt
 DEPENDPATH += . debug ../include ../src ../3rdparty/include
 INCLUDEPATH += . .. ../include ../3rdparty/include
 MOC_DIR = .
-UID_DIR = .
+UID_DIR = ../include
 
 # Input
 HEADERS += ../include/os.hpp \
