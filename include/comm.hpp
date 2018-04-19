@@ -14,6 +14,7 @@ using std::string;
 
 #define COMMBUF_LEN 32
 #define COMM_AUTO_TEST_NUM 100
+#define COMM_DEFAULT_SOCKPORT 5005
 
 /**C O M*******************************************************************
  * Create: BY Huang Cheng(yelloworangecc@icloud.com) ON 2018410

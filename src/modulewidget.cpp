@@ -193,7 +193,10 @@ void ModuleWidget::onComm1stSended()
         setLcdLostRate1st(lostRate);
         setLcdErroRate1st(erroRate);
     }
-    (*g_log)<< "comm2nd recv failed... " << ENDL;
+    else
+    {
+        (*g_log)<< "comm2nd recv failed... " << ENDL;
+    }
 }
 
 void ModuleWidget::onComm2ndSended()
@@ -222,16 +225,16 @@ void ModuleWidget::onComm2ndSended()
 
 void ModuleWidget::clearComms()
 {
-    comm1st->close();
-    comm2nd->close();
     if (comm1st != NULL)
     {
+        comm1st->close();
         delete comm1st;
         comm1st = NULL;
     }
 
     if (comm2nd != NULL)
     {
+        comm2nd->close();
         delete comm2nd;
         comm2nd = NULL;
     }
