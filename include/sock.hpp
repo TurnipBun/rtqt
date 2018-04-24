@@ -1,7 +1,13 @@
 #ifndef _WINSOCK_HPP_
 #define _WINSOCK_HPP_
 #include <map>
+#ifdef VXWORKS
+#include <sockLib.h>
+#define INVALID_SOCKET ERROR
+#define SOCKET_ERROR ERROR
+#else
 #include <winsock2.h>
+#endif
 #include <pthread.h>
 #include "comm.hpp"
 
@@ -21,14 +27,14 @@ void * acceptRoutine(void * data);
 ----------------------------C H A N G E   L O G----------------------------
  * 
 **************************************************************************/
-class WinSock : public Comm
+class Sock : public Comm
 {
 public:
     static const map<string,int>& enumSysIpAddr();//枚举系统ip地址
     friend void * acceptRoutine(void * data);
 
-    WinSock(const string &ip, unsigned int port);
-    ~WinSock();
+    Sock(const string &ip, unsigned int port);
+    ~Sock();
 
     
     int open();
@@ -38,7 +44,7 @@ public:
     int recv(string& data);
     bool compare(const string& data);
     
-    SOCKET sockFd;
+    int sockFd;
     
 private:
     static map<string,int> mapSysIp;

@@ -72,7 +72,7 @@ const map<string,int>& VxCom::enumSettingParity()
 }
 
 
-VxCom::VxCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity)
+VxCom::VxCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity, bool isRtsOn)
     :fd(0)
 {
     settings.portName = portName;
@@ -80,6 +80,7 @@ VxCom::VxCom(const string& portName, int baudRate, int dataBit, int stopBit, int
     settings.dataBit = dataBit;
     settings.stopBit = stopBit;
     settings.parity = parity;
+    settings.isRtsOn = isRtsOn;
     lastSend = new char[COMMBUF_LEN];
     readBuf = new char[COMMBUF_LEN];
 }
@@ -96,6 +97,10 @@ int VxCom::open()
     if (ERROR == fd) return COMM_ERR_OPEN;
     if (ERROR == ::ioctl(fd,FIOSETOPTIONS,OPT_RAW)) return COMM_ERR_IOCTL;
     if (ERROR == ::ioctl(fd,FIOBAUDRATE, settings.baudRate)) return COMM_ERR_IOCTL;
+    if (settings.isRtsOn)
+        if (ERROR == ::ioctl(fd, SIO_RS485, 1)) return COMM_ERR_IOCTL;
+    else
+        if (ERROR == ::ioctl(fd, SIO_RS485, 0)) return COMM_ERR_IOCTL;
     if (ERROR == ::ioctl(fd,SIO_HW_OPTS_SET,(CLOCAL|CREAD|settings.dataBit)&~(HUPCL|settings.stopBit|settings.parity))) return COMM_ERR_IOCTL;
     if (ERROR == ::ioctl(fd,FIOFLUSH,0)) return COMM_ERR_IOCTL;
 

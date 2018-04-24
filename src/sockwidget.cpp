@@ -81,6 +81,8 @@ void SockWidget::fillCombos()
         comboServerIp->addItem(QString::fromStdString(iter->first), iter->second);
         comboClientIp->addItem(QString::fromStdString(iter->first), iter->second);
     }
+    comboServerIp->setEditable(true);
+    comboClientIp->setEditable(true);
     return;
 }
 void SockWidget::connectSignalToSlot()

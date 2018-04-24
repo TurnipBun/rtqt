@@ -26,7 +26,7 @@ public:
     static const map<string,int>& enumSettingStopBit();
     static const map<string,int>& enumSettingParity();
 
-    WinCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity);
+    WinCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity, bool isRtsOn);
     ~WinCom();
     
     int open();
@@ -49,6 +49,7 @@ private:
         int dataBit;
         int stopBit;
         int parity;
+        bool isRtsOn;
     } settings;
     
     HANDLE comm;

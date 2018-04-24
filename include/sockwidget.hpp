@@ -3,13 +3,8 @@
 #include <QtGui>
 #include "modulewidget.hpp"
 
-#ifdef VXWORKS
-#include "vxsock.hpp"
-#define DEF_SOCK VxSock
-#else
-#include "winsock.hpp"
-#define DEF_SOCK WinSock
-#endif
+#include "sock.hpp"
+#define DEF_SOCK Sock
 
 
 /**S O C K   W I D G E T***************************************************
@@ -22,6 +17,7 @@
 **************************************************************************/
 class SockWidget : public ModuleWidget
 {
+    Q_OBJECT
 public:
     QHBoxLayout *hLayoutUp;
     QLabel *labelServerIp;

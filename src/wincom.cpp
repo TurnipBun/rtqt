@@ -82,7 +82,7 @@ const map<string,int>& WinCom::enumSettingParity()
 }
 
 
-WinCom::WinCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity)
+WinCom::WinCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity, bool isRtsOn)
     :comm(INVALID_HANDLE_VALUE)
 {
     settings.portName = "\\\\.\\";
@@ -91,6 +91,7 @@ WinCom::WinCom(const string& portName, int baudRate, int dataBit, int stopBit, i
     settings.dataBit = dataBit;
     settings.stopBit = stopBit;
     settings.parity = parity;
+    settings.isRtsOn = isRtsOn;
     lastSend = new char[COMMBUF_LEN];
     readBuf = new char[COMMBUF_LEN];
 }
@@ -114,6 +115,7 @@ int WinCom::open()
     dcb.ByteSize = settings.dataBit;
     dcb.StopBits = settings.stopBit;
     dcb.Parity = settings.parity;
+    dcb.fRtsControl = settings.isRtsOn ? RTS_CONTROL_ENABLE : RTS_CONTROL_DISABLE;
     SetCommState(comm, &dcb);
 
     PurgeComm(comm, PURGE_RXABORT | PURGE_RXCLEAR | PURGE_TXABORT | PURGE_TXCLEAR);

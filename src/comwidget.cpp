@@ -29,8 +29,9 @@ void ComWidget::onPushOpenClicked()
     int dataBit = comboDataBit->itemData(comboDataBit->currentIndex()).toInt();
     int stopBit = comboStopBit->itemData(comboStopBit->currentIndex()).toInt();
     int parity = comboParity->itemData(comboParity->currentIndex()).toInt();
+    bool isRtsOn = checkRts->isChecked();
     
-    ret = initComms(com1stName, com2ndName, baudRate, dataBit, stopBit, parity);
+    ret = initComms(com1stName, com2ndName,isRtsOn, baudRate, dataBit, stopBit, parity);
     if (COMM_SUC != ret)
     {
         msgBox.setText("ERROR: call initComs failed");
@@ -50,12 +51,14 @@ void ComWidget::addSettings()
     labelComName2nd = new QLabel(tr(" 2nd COM:"));
     comboComName1st = new QComboBox;
     comboComName2nd = new QComboBox;
+    checkRts = new QCheckBox("RTS");
     hLayoutUp->addWidget(labelComName1st);
     hLayoutUp->addWidget(comboComName1st);
     hLayoutUp->addWidget(labelComName2nd);
     hLayoutUp->addWidget(comboComName2nd);
     hLayoutUp->addWidget(comboComName2nd);
     hLayoutUp->insertStretch(-1);
+    hLayoutUp->addWidget(checkRts);
     
     hLayoutDown = new QHBoxLayout;
     labelBaudRate = new QLabel(tr(" Boud Rate:"));
@@ -123,12 +126,12 @@ void ComWidget::connectSignalToSlot()
     connect(this,SIGNAL(pushOpenClicked()),this,SLOT(onPushOpenClicked()));
 }
 
-int ComWidget::initComms(const string& com1stName, const string& com2ndName,
-                         int baudRate, int dataBit, int stopBit, int parity)
+int ComWidget::initComms(const string& com1stName, const string& com2ndName, bool isRtsOn,
+                             int baudRate, int dataBit, int stopBit, int parity)
 {
     
-    comm1st = new DEF_COM(com1stName,baudRate,dataBit,stopBit,parity);
-    comm2nd = new DEF_COM(com2ndName,baudRate,dataBit,stopBit,parity);
+    comm1st = new DEF_COM(com1stName,baudRate,dataBit,stopBit,parity,isRtsOn);
+    comm2nd = new DEF_COM(com2ndName,baudRate,dataBit,stopBit,parity,isRtsOn);
     int ret;
     ret = comm1st->open();
     if (COMM_SUC != ret) return ret;

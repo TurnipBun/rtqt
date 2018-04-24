@@ -11,7 +11,7 @@ HEADERS += ../include/os.hpp \
 		   ../include/comm.hpp \
 		   ../include/can.hpp \
 		   ../include/wincom.hpp \
-		   ../include/winsock.hpp \
+		   ../include/sock.hpp \
 		   ../include/modulewidget.hpp \
 		   ../include/comwidget.hpp \
 		   ../include/canwidget.hpp \
@@ -22,7 +22,7 @@ SOURCES += ../src/os.cpp \
 		   ../src/log.cpp \
 		   ../src/can.cpp \
            ../src/wincom.cpp \
-		   ../src/winsock.cpp \
+		   ../src/sock.cpp \
            ../src/modulewidget.cpp \
 		   ../src/comwidget.cpp \
 		   ../src/canwidget.cpp \

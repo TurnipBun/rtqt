@@ -13,7 +13,7 @@ public:
     static const map<string,int>& enumSettingStopBit();
     static const map<string,int>& enumSettingParity();
     
-    VxCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity);
+    VxCom(const string& portName, int baudRate, int dataBit, int stopBit, int parity, bool isRtsOn);
     ~VxCom();
 
     int open();
@@ -35,6 +35,7 @@ private:
         int dataBit;
         int stopBit;
         int parity;
+        bool isRtsOn;
     } settings;
     
     int fd;

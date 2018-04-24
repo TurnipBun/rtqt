@@ -34,6 +34,7 @@ public:
     QComboBox *comboDataBit;
     QComboBox *comboStopBit;
     QComboBox *comboParity;
+    QCheckBox *checkRts;
     
     QVBoxLayout *vLayoutMain;
 
@@ -44,7 +45,7 @@ private:
     void addSettings();
     void fillCombos();
     void connectSignalToSlot();
-    int initComms(const string& com1stName, const string& com2ndName,
+    int initComms(const string& com1stName, const string& com2ndName, bool isRtsOn,
                          int baudRate, int dataBit, int stopBit, int parity);
 
 };
