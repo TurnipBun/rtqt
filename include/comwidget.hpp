@@ -39,12 +39,12 @@ public:
     QVBoxLayout *vLayoutMain;
 
 public slots:
-    void onPushOpenClicked();
+    void on_pushOpen_clicked();
+    void on_pushClose_clicked();
 
 private:
     void addSettings();
     void fillCombos();
-    void connectSignalToSlot();
     int initComms(const string& com1stName, const string& com2ndName, bool isRtsOn,
                          int baudRate, int dataBit, int stopBit, int parity);
 

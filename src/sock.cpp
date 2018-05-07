@@ -124,11 +124,7 @@ int Sock::open()
 {
     int ret;
     sockaddr_in service;
-#ifndef VXWORKS
-    WSADATA wsaData;
-    ret = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (ret != 0) return COMM_ERR_OPEN;
-#endif
+
     sockFd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sockFd == INVALID_SOCKET) return COMM_ERR_OPEN;
     
@@ -162,7 +158,9 @@ void Sock::close()
 {
     pthread_cancel(acceptTh);
 #ifndef VXWORKS
-    WSACleanup();
+    closesocket(sockFd);
+#else
+    close(sockFd);
 #endif
     sockFd = INVALID_SOCKET;
     return;

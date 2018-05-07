@@ -6,30 +6,35 @@ CanWidget::CanWidget()
 {
     addSettings();
     fillCombos();
-    connectSignalToSlot();
 }
 CanWidget::~CanWidget()
 {
 }
 
-void CanWidget::onPushOpenClicked()
+void CanWidget::on_pushOpen_clicked()
 {
     int devno = comboCanPairDev->itemData(comboBaudRate->currentIndex()).toInt();
     int baudRate = comboBaudRate->itemData(comboBaudRate->currentIndex()).toInt();
 
+    clearTextBrowsers();
+
     int ret = initComms(devno,baudRate);
     if (COMM_SUC != ret)
     {
-        msgBox.setText("ERROR: call initCans failed");
-        msgBox.exec();
+        showMsgBox("ERROR: call initCans failed");
         clearComms();
         setEnabledAtClose();
         return;
     } 
-    
-    setTextLineSend1st(OS::genVisibleString(8));
-    setTextLineSend2nd(OS::genVisibleString(8));
+    setTextLineSend1st(QString::fromStdString(OS::genVisibleString(8)));
+    setTextLineSend2nd(QString::fromStdString(OS::genVisibleString(8)));
 }
+
+void CanWidget::on_pushClose_clicked()
+{
+    clearComms();
+}
+
 
 void CanWidget::addSettings()
 {
@@ -65,11 +70,6 @@ void CanWidget::fillCombos()
     }
 }
 
-void CanWidget::connectSignalToSlot()
-{
-    connect(this,SIGNAL(pushOpenClicked()),this,SLOT(onPushOpenClicked()));
-}
-
 int CanWidget::initComms(int devno, int baudRate)
 {
     comm1st = new Can(devno*2,baudRate);
@@ -80,6 +80,12 @@ int CanWidget::initComms(int devno, int baudRate)
     if (COMM_SUC != ret) return ret;
     ret = comm2nd->open();
     if (COMM_SUC != ret) return ret;
+
+    comm1stThread.bind(comm1st);
+    comm1stThread.start();
+    comm2ndThread.bind(comm2nd);
+    comm2ndThread.start();
+    
     return COMM_SUC;
 }
                          

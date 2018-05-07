@@ -19,12 +19,12 @@ public:
     QHBoxLayout *hLayout;
 
 public slots:
-    void onPushOpenClicked();
+    void on_pushOpen_clicked();
+    void on_pushClose_clicked();
 
 private:
     void addSettings();
     void fillCombos();
-    void connectSignalToSlot();
     int initComms(int devno, int baudRate);
 
     QMessageBox msgBox;

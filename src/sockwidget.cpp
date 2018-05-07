@@ -5,16 +5,14 @@ SockWidget::SockWidget()
 {
     addSettings();
     fillCombos();
-    connectSignalToSlot();
 }
 
 SockWidget::~SockWidget()
 {
 }
 
-void SockWidget::onPushOpenClicked()
+void SockWidget::on_pushOpen_clicked()
 {
-    //TODO:依据界面元素的参数初始化通信对象
     string serverIp, clientIp;
     unsigned int serverPort, clientPort;
     bool convOk;
@@ -24,19 +22,33 @@ void SockWidget::onPushOpenClicked()
     serverPort = lineServerPort->text().toInt(&convOk,10);
     clientPort = lineClientPort->text().toInt(&convOk,10);
 
+    clearTextBrowsers();
+
+    ret = initSockLib();
+    if (COMM_SUC != ret)
+    {
+        showMsgBox("ERROR: call initSockLib failed");
+        setEnabledAtClose();
+        return;
+    }
+
     ret = initComms(serverIp,serverPort,clientIp,clientPort);
     if (COMM_SUC != ret)
     {
-        msgBox.setText("ERROR: call initComs failed");
-        msgBox.exec();
+        showMsgBox("ERROR: call initComs failed");
         clearComms();
         setEnabledAtClose();
         return;
     }
-    
-    setTextLineSend1st(OS::genVisibleString(8));
-    setTextLineSend2nd(OS::genVisibleString(8));
+    setTextLineSend1st(QString::fromStdString(OS::genVisibleString(8)));
+    setTextLineSend2nd(QString::fromStdString(OS::genVisibleString(8)));
     return;
+}
+
+void SockWidget::on_pushClose_clicked()
+{
+    clearComms();
+    releaseSockLib();
 }
 
 
@@ -57,15 +69,25 @@ void SockWidget::addSettings()
     labelClientPort = new QLabel(tr(" Client Port:"));
     comboClientIp = new QComboBox;
     lineClientPort= new QLineEdit(tr("5006"));
+
+    hLayoutMid = new QHBoxLayout;
+    hLayoutMid->addWidget(labelClientIp);
+    hLayoutMid->addWidget(comboClientIp);
+    hLayoutMid->addWidget(labelClientPort);
+    hLayoutMid->addWidget(lineClientPort);
+    hLayoutMid->insertStretch(-1);
+
+    labelProtocol = new QLabel(tr(" Protocol:"));
+    comboProtocol = new QComboBox;
+    
     hLayoutDown = new QHBoxLayout;
-    hLayoutDown->addWidget(labelClientIp);
-    hLayoutDown->addWidget(comboClientIp);
-    hLayoutDown->addWidget(labelClientPort);
-    hLayoutDown->addWidget(lineClientPort);
-    hLayoutDown->insertStretch(-1);
+    hLayoutDown->addWidget(labelProtocol);
+    hLayoutDown->addWidget(comboProtocol);
+    hLayoutMid->insertStretch(-1);
 
     vLayout = new QVBoxLayout;
     vLayout->addLayout(hLayoutUp);
+    vLayout->addLayout(hLayoutMid);
     vLayout->addLayout(hLayoutDown);
 
     groupSetting->setLayout(vLayout);
@@ -85,24 +107,42 @@ void SockWidget::fillCombos()
     comboClientIp->setEditable(true);
     return;
 }
-void SockWidget::connectSignalToSlot()
+
+int SockWidget::initSockLib()
 {
-    connect(this,SIGNAL(pushOpenClicked()),this,SLOT(onPushOpenClicked()));
-    return;
+#ifndef VXWORKS
+    int ret;
+    WSADATA wsaData;
+    ret = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (ret != 0) return COMM_ERR_OPEN;
+#endif
+    return COMM_SUC;
 }
 
+void SockWidget::releaseSockLib()
+{
+#ifndef VXWORKS
+    WSACleanup();
+#endif
+}
 
 int SockWidget::initComms(const string& serverIp, unsigned int serverPort,
                              const string& clientIp, unsigned int clientPort)
-{
+{   
+    int ret;
     comm1st = new DEF_SOCK(serverIp, serverPort);
     comm2nd = new DEF_SOCK(clientIp, clientPort);
     reinterpret_cast<DEF_SOCK*>(comm2nd)->connect(serverIp,serverPort);
-    int ret;
+
     ret = comm1st->open();
     if (COMM_SUC != ret) return ret;
     ret = comm2nd->open();
     if (COMM_SUC != ret) return ret;
+    
+    comm1stThread.bind(comm1st);
+    comm1stThread.start();
+    comm2ndThread.bind(comm2nd);
+    comm2ndThread.start();
     return COMM_SUC;
 }
 

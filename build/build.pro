@@ -9,6 +9,7 @@ UID_DIR = .
 HEADERS += ../include/os.hpp \
 		   ../include/log.hpp \
 		   ../include/comm.hpp \
+		   ../include/commthread.hpp \
 		   ../include/can.hpp \
 		   ../include/wincom.hpp \
 		   ../include/sock.hpp \
@@ -20,6 +21,7 @@ HEADERS += ../include/os.hpp \
 
 SOURCES += ../src/os.cpp \
 		   ../src/log.cpp \
+		   ../src/commthread.cpp \
 		   ../src/can.cpp \
            ../src/wincom.cpp \
 		   ../src/sock.cpp \

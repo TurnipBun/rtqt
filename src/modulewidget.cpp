@@ -8,45 +8,29 @@ ModuleWidget::ModuleWidget()
 {
     setupUi(this);
     setEnabledAtClose();
-    //连接到界面调整槽
+    //连接到界面调整信号
     connect(pushOpen,SIGNAL(clicked()),this,SLOT(setEnabledAtOpen()));
     connect(pushClose,SIGNAL(clicked()),this,SLOT(setEnabledAtClose()));
-    //连接到新定义的信号
-    connect(pushOpen,SIGNAL(clicked()),this,SIGNAL(pushOpenClicked()));
-    connect(pushClose,SIGNAL(clicked()),this,SIGNAL(pushCloseClicked()));
-    connect(pushAuto,SIGNAL(clicked()),this,SIGNAL(pushAutoClicked()));
-    connect(pushSend1st,SIGNAL(clicked()),this,SIGNAL(pushSend1stClicked()));
-    connect(pushSend2nd,SIGNAL(clicked()),this,SIGNAL(pushSend2ndClicked()));
-    //新信号连接到槽
-    connect(this,SIGNAL(pushCloseClicked()),this,SLOT(onPushCloseClicked()));
-    connect(this,SIGNAL(pushAutoClicked()),this,SLOT(onPushAutoClicked()));
-    connect(this,SIGNAL(pushSend1stClicked()),this,SLOT(onPushSend1stClicked()));
-    connect(this,SIGNAL(pushSend2ndClicked()),this,SLOT(onPushSend2ndClicked()));
-    //触发接收动作
-    connect(this,SIGNAL(comm1stSended()),this,SLOT(onComm1stSended()));
-    connect(this,SIGNAL(comm2ndSended()),this,SLOT(onComm2ndSended()));
+    //连接线程信号
+    connect(&comm1stThread,SIGNAL(started()),this,SLOT(onThreadStarted()));
+    connect(&comm2ndThread,SIGNAL(started()),this,SLOT(onThreadStarted()));
+    connect(&comm1stThread,SIGNAL(finished()),this,SLOT(onThreadFinished()));
+    connect(&comm2ndThread,SIGNAL(finished()),this,SLOT(onThreadFinished()));
+    connect(&comm1stThread,SIGNAL(dataRecved(const QString&)),this,SLOT(onComm1stRecved(const QString&)));
+    connect(&comm2ndThread,SIGNAL(dataRecved(const QString&)),this,SLOT(onComm2ndRecved(const QString&)));
 }
 
 ModuleWidget::~ModuleWidget()
 {
+
 }
 
-string ModuleWidget::getTextLineSend1st()
+void ModuleWidget::showMsgBox(const QString& text)
 {
-    return lineSend1st->text().toStdString();
+    msgBox.setText(text);
+    msgBox.exec();
 }
-string ModuleWidget::getTextLineSend2nd()
-{
-    return lineSend2nd->text().toStdString();
-}
-string ModuleWidget::getTextLineRecv1st()
-{
-    return lineRecv1st->text().toStdString();
-}
-string ModuleWidget::getTextLineRecv2nd()
-{
-    return lineRecv2nd->text().toStdString();
-}
+
 
 void ModuleWidget::setEnabledAtOpen()
 {
@@ -70,54 +54,8 @@ void ModuleWidget::setEnabledAtClose()
     pushAuto->setEnabled(false);
 }
 
-void ModuleWidget::setTextLineSend1st(const string& text)
-{
-    lineSend1st->setText(QString::fromStdString(text));
-}
-void ModuleWidget::setTextLineSend2nd(const string& text)
-{
-    lineSend2nd->setText(QString::fromStdString(text));
-}
-void ModuleWidget::setTextLineRecv1st(const string& text)
-{
-    lineRecv1st->setText(QString::fromStdString(text));
-}
-void ModuleWidget::setTextLineRecv2nd(const string& text)
-{
-    lineRecv2nd->setText(QString::fromStdString(text));
-}
 
-void ModuleWidget::setLcdSendCount1st(int count)
-{
-    lcdSendCount1st->display(count);
-}
-void ModuleWidget::setLcdSendCount2nd(int count)
-{
-    lcdSendCount2nd->display(count);
-}
-void ModuleWidget::setLcdLostRate1st(double rate)
-{
-    lcdLostRate1st->display(rate);   
-}
-void ModuleWidget::setLcdLostRate2nd(double rate)
-{
-    lcdLostRate2nd->display(rate);
-}
-void ModuleWidget::setLcdErroRate1st(double rate)
-{
-    lcdErrorRate1st->display(rate);
-}
-void ModuleWidget::setLcdErroRate2nd(double rate)
-{
-    lcdErrorRate2nd->display(rate);
-}
-
-void ModuleWidget::onPushCloseClicked()
-{
-    clearComms();
-}
-
-void ModuleWidget::onPushAutoClicked()
+void ModuleWidget::on_pushAuto_clicked()
 {
     int i;
     (*g_log)<< "auto test start..."<< ENDL;
@@ -127,15 +65,15 @@ void ModuleWidget::onPushAutoClicked()
     processBar.show();
     for (i = 1; i <= COMM_AUTO_TEST_NUM; ++i)
     {
-        emit pushSend1stClicked();
-        emit pushSend2ndClicked();
+        on_pushSend1st_clicked();
+        on_pushSend2nd_clicked();
         processBar.setValue(i);
     }
     
     (*g_log)<< "auto test end... " << ENDL;
 }
 
-void ModuleWidget::onPushSend1stClicked()
+void ModuleWidget::on_pushSend1st_clicked()
 {
     int ret;
     string sendData = getTextLineSend1st();
@@ -143,17 +81,18 @@ void ModuleWidget::onPushSend1stClicked()
     ret = comm1st->send(sendData);
     if (ret != COMM_SUC)
     {
-        msgBox.setText(tr("ERROR: comm1st send data failed: %1").arg(ret));
-        msgBox.exec();
+        showMsgBox(tr("ERROR: comm1st send data failed: %1").arg(ret));
         return;
     }
     OS::wait(20);
 
-    emit comm1stSended();
-    setTextLineSend1st(OS::genVisibleString(8));
+    
+    setLcdSendCount1st(comm1st->getSendCount());
+    appendTextBrowserSend1st(QString::fromStdString(sendData));
+    setTextLineSend1st(QString::fromStdString(OS::genVisibleString(8)));
 }
 
-void ModuleWidget::onPushSend2ndClicked()
+void ModuleWidget::on_pushSend2nd_clicked()
 {
     int ret;
     string sendData = getTextLineSend2nd();
@@ -161,16 +100,16 @@ void ModuleWidget::onPushSend2ndClicked()
     ret = comm2nd->send(sendData);
     if (ret != COMM_SUC)
     {
-        msgBox.setText(tr("ERROR: comm2nd send data failed: %1").arg(ret));
-        msgBox.exec();
+        showMsgBox(tr("ERROR: comm2nd send data failed: %1").arg(ret));
         return;
     }
     OS::wait(20);
-    
-    emit comm2ndSended();
-    setTextLineSend2nd(OS::genVisibleString(8));
-}
 
+    setLcdSendCount2nd(comm2nd->getSendCount());
+    appendTextBrowserSend2nd(QString::fromStdString(sendData));
+    setTextLineSend2nd(QString::fromStdString(OS::genVisibleString(8)));
+}
+/*
 void ModuleWidget::onComm1stSended()
 {
     int ret;
@@ -222,9 +161,59 @@ void ModuleWidget::onComm2ndSended()
         setLcdErroRate2nd(erroRate);
     }
 }
+*/
+
+void ModuleWidget::onComm1stRecved(const QString& data)
+{
+    appendTextBrowserRecv1st(data);
+    if (comm1st != NULL)
+    {
+        setLcdRecvCount1st(comm1st->getRecvCount());
+    }
+    const string& temp = data.toStdString();
+    (*g_log)<< "comm2nd recving data: " << temp << ENDL;
+}
+
+void ModuleWidget::onComm2ndRecved(const QString& data)
+{
+    appendTextBrowserRecv2nd(data);
+    if (comm2nd != NULL)
+    {
+        setLcdRecvCount2nd(comm2nd->getRecvCount());
+    }
+    const string& temp = data.toStdString();
+    (*g_log)<< "comm2nd recving data: " << temp << ENDL;
+}
+
+void ModuleWidget::onThreadStarted()
+{
+     (*g_log)<< "one thread started... " << ENDL;
+}
+
+void ModuleWidget::onThreadFinished()
+{
+    (*g_log)<< "one thread finished... " << ENDL;
+}
+
 
 void ModuleWidget::clearComms()
 {
+    comm1stThread.stop();
+    comm2ndThread.stop();
+    
+    if (comm1st != NULL)
+    {
+        comm1st->send("bye");
+    }
+
+    if (comm2nd != NULL)
+    {
+        comm2nd->send("bye");
+    }
+    
+    comm1stThread.wait();
+    comm2ndThread.wait();
+
     if (comm1st != NULL)
     {
         comm1st->close();
@@ -239,4 +228,14 @@ void ModuleWidget::clearComms()
         comm2nd = NULL;
     }
 }
+
+
+void ModuleWidget::clearTextBrowsers()
+{
+    textSend1st->clear();
+    textSend2nd->clear();
+    textRecv1st->clear();
+    textRecv2nd->clear();
+}
+
 

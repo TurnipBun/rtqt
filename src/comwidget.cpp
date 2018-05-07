@@ -6,21 +6,22 @@ ComWidget::ComWidget()
 {
     addSettings();
     fillCombos();
-    connectSignalToSlot();
 }
 ComWidget::~ComWidget()
 {
 }
 
-void ComWidget::onPushOpenClicked()
+void ComWidget::on_pushOpen_clicked()
 {
     int ret;
+
+    clearTextBrowsers();
+    
     string com1stName = comboComName1st->currentText().toStdString();
     string com2ndName = comboComName2nd->currentText().toStdString();
     if (com1stName == com2ndName)
     {
-        msgBox.setText("ERROR: two ports can not be the same.");
-        msgBox.exec();
+        showMsgBox("ERROR: two ports can not be the same.");
         setEnabledAtClose();
         return;
     }
@@ -34,15 +35,21 @@ void ComWidget::onPushOpenClicked()
     ret = initComms(com1stName, com2ndName,isRtsOn, baudRate, dataBit, stopBit, parity);
     if (COMM_SUC != ret)
     {
-        msgBox.setText("ERROR: call initComs failed");
-        msgBox.exec();
+        showMsgBox("ERROR: call initComs failed");
         clearComms();
         setEnabledAtClose();
         return;
     }
-    setTextLineSend1st(OS::genVisibleString(8));
-    setTextLineSend2nd(OS::genVisibleString(8));
+    
+    setTextLineSend1st(QString::fromStdString(OS::genVisibleString(8)));
+    setTextLineSend2nd(QString::fromStdString(OS::genVisibleString(8)));
 }
+
+void ComWidget::on_pushClose_clicked()
+{
+    clearComms();
+}
+
 
 void ComWidget::addSettings()
 {
@@ -121,11 +128,6 @@ void ComWidget::fillCombos()
     }
 }
 
-void ComWidget::connectSignalToSlot()
-{
-    connect(this,SIGNAL(pushOpenClicked()),this,SLOT(onPushOpenClicked()));
-}
-
 int ComWidget::initComms(const string& com1stName, const string& com2ndName, bool isRtsOn,
                              int baudRate, int dataBit, int stopBit, int parity)
 {
@@ -137,6 +139,12 @@ int ComWidget::initComms(const string& com1stName, const string& com2ndName, boo
     if (COMM_SUC != ret) return ret;
     ret = comm2nd->open();
     if (COMM_SUC != ret) return ret;
+    
+    comm1stThread.bind(comm1st);
+    comm1stThread.start();
+    comm2ndThread.bind(comm2nd);
+    comm2ndThread.start();
+    
     return COMM_SUC;
 }
 
