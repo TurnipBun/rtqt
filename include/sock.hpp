@@ -33,7 +33,7 @@ public:
     static const map<string,int>& enumSysIpAddr();//枚举系统ip地址
     friend void * acceptRoutine(void * data);
 
-    Sock(const string &ip, unsigned int port);
+    Sock(const string &ip, unsigned int port, const string& protocol);
     ~Sock();
 
     
@@ -47,7 +47,13 @@ public:
     int sockFd;
     
 private:
+    int createSock();
+    int initSock();
+
     static map<string,int> mapSysIp;
+    sockaddr_in local;
+    sockaddr_in remote;
+    bool isRemoteOk;
 
     struct
     {
@@ -55,6 +61,7 @@ private:
         unsigned int port;
         string remoteIp;
         unsigned int remotePort;
+        int protocol;
         bool isServer;//依据是否调用connect来设置
     } settings;
     pthread_t acceptTh; 

@@ -50,6 +50,7 @@ void CommThread::run()
         {
             emit dataRecved(QString::fromStdString(data));
         }
+        //msleep(20);
     }
     return;
 }

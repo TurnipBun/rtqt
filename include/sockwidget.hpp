@@ -25,12 +25,17 @@ public:
     QComboBox *comboServerIp;
     QLineEdit *lineServerPort;
    
-    QHBoxLayout *hLayoutMid;
+    QHBoxLayout *hLayoutMid1;
     QLabel *labelClientIp;
     QLabel *labelClientPort;
     QComboBox *comboClientIp;
     QLineEdit *lineClientPort;
 
+    QHBoxLayout *hLayoutMid2;
+    QLabel *labelConnectIp;
+    QLabel *labelConnectPort;
+    QLineEdit *lineConnectIp;
+    QLineEdit *lineConnectPort;
     
     QHBoxLayout *hLayoutDown;
     QLabel *labelProtocol;
@@ -48,11 +53,13 @@ public slots:
 private:
     
     void addSettings();
-    void fillCombos();
+    void fillParams();
     int initSockLib();
     void releaseSockLib();
     int initComms(const string& serverIp, unsigned int serverPort,
-                     const string& clientIp, unsigned int clientPort);
+                     const string& clientIp, unsigned int clientPort,
+                     const string& connectIp, unsigned int connectPort,
+                     const string& protocol);
 };
 
 #endif

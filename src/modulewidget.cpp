@@ -171,7 +171,7 @@ void ModuleWidget::onComm1stRecved(const QString& data)
         setLcdRecvCount1st(comm1st->getRecvCount());
     }
     const string& temp = data.toStdString();
-    (*g_log)<< "comm2nd recving data: " << temp << ENDL;
+    (*g_log)<< "comm1st recving data: " << temp << ENDL;
 }
 
 void ModuleWidget::onComm2ndRecved(const QString& data)
