@@ -52,7 +52,8 @@ public slots:
     virtual void on_pushClose_clicked() = 0;
 
     //按钮点击槽函数
-    void on_pushAuto_clicked();
+    void on_pushAuto12_clicked();
+    void on_pushAuto21_clicked();
     void on_pushSend1st_clicked();
     void on_pushSend2nd_clicked();
     
@@ -61,8 +62,8 @@ public slots:
     //void onComm2ndSended();
     
     //线程的接收数据槽函数
-    void onComm1stRecved(const QString& text);
-    void onComm2ndRecved(const QString& text);
+    void onComm1stRecved(double timestamp, const QString& text);
+    void onComm2ndRecved(double timestamp, const QString& text);
 
     //线程状态通知槽函数
     void onThreadStarted();

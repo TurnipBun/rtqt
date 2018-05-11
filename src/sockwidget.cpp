@@ -162,7 +162,7 @@ int SockWidget::initComms(const string& serverIp, unsigned int serverPort,
     int ret;
     comm1st = new DEF_SOCK(serverIp, serverPort, protocol);
     comm2nd = new DEF_SOCK(clientIp, clientPort, protocol);
-    reinterpret_cast<DEF_SOCK*>(comm2nd)->connect(serverIp, serverPort);
+    reinterpret_cast<DEF_SOCK*>(comm2nd)->connect(connectIp, connectPort);
 
     ret = comm1st->open();
     if (COMM_SUC != ret) return ret;

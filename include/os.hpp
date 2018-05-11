@@ -7,6 +7,7 @@ class OS
 {
 public:
     static void wait(unsigned int ms);
+    static double getTimestamp();
     static char genVisibleChar();
     static string genVisibleString(int len);
 };

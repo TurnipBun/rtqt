@@ -2,6 +2,7 @@
 #include "log.hpp"
 
 #include "modulewidget.hpp"
+#include "os.hpp"
 
 ModuleWidget::ModuleWidget()
     :comm1st(NULL),comm2nd(NULL)
@@ -16,8 +17,8 @@ ModuleWidget::ModuleWidget()
     connect(&comm2ndThread,SIGNAL(started()),this,SLOT(onThreadStarted()));
     connect(&comm1stThread,SIGNAL(finished()),this,SLOT(onThreadFinished()));
     connect(&comm2ndThread,SIGNAL(finished()),this,SLOT(onThreadFinished()));
-    connect(&comm1stThread,SIGNAL(dataRecved(const QString&)),this,SLOT(onComm1stRecved(const QString&)));
-    connect(&comm2ndThread,SIGNAL(dataRecved(const QString&)),this,SLOT(onComm2ndRecved(const QString&)));
+    connect(&comm1stThread,SIGNAL(dataRecved(double, const QString&)),this,SLOT(onComm1stRecved(double, const QString&)));
+    connect(&comm2ndThread,SIGNAL(dataRecved(double, const QString&)),this,SLOT(onComm2ndRecved(double, const QString&)));
 }
 
 ModuleWidget::~ModuleWidget()
@@ -40,7 +41,8 @@ void ModuleWidget::setEnabledAtOpen()
     group1st->setEnabled(true);
     group2nd->setEnabled(true);
     pushClose->setEnabled(true);
-    pushAuto->setEnabled(true);
+    pushAuto12->setEnabled(true);
+    pushAuto21->setEnabled(true);
 }
 
 void ModuleWidget::setEnabledAtClose()
@@ -51,26 +53,47 @@ void ModuleWidget::setEnabledAtClose()
     group1st->setEnabled(false);
     group2nd->setEnabled(false);
     pushClose->setEnabled(false);
-    pushAuto->setEnabled(false);
+    pushAuto12->setEnabled(false);
+    pushAuto21->setEnabled(false);
 }
 
 
-void ModuleWidget::on_pushAuto_clicked()
+void ModuleWidget::on_pushAuto12_clicked()
 {
     int i;
-    (*g_log)<< "auto test start..."<< ENDL;
     QProgressBar processBar;
+    comm2ndThread.recordTime(true);
+    (*g_log)<< "auto test start..."<< ENDL;
     processBar.setMinimum(1);
     processBar.setMaximum(COMM_AUTO_TEST_NUM);
     processBar.show();
     for (i = 1; i <= COMM_AUTO_TEST_NUM; ++i)
     {
         on_pushSend1st_clicked();
+        processBar.setValue(i);
+    }
+    showMsgBox(tr("max interval %1").arg(comm2ndThread.getMaxInterval(),0,'f',6));
+    (*g_log)<< "auto test end... " << ENDL;
+    comm2ndThread.recordTime(false);
+}
+
+void ModuleWidget::on_pushAuto21_clicked()
+{
+    int i;
+    QProgressBar processBar;
+    comm1stThread.recordTime(true);
+    (*g_log)<< "auto test start..."<< ENDL;
+    processBar.setMinimum(1);
+    processBar.setMaximum(COMM_AUTO_TEST_NUM);
+    processBar.show();
+    for (i = 1; i <= COMM_AUTO_TEST_NUM; ++i)
+    {
         on_pushSend2nd_clicked();
         processBar.setValue(i);
     }
-    
+    showMsgBox(tr("max interval %1").arg(comm1stThread.getMaxInterval(),0,'f',6));
     (*g_log)<< "auto test end... " << ENDL;
+    comm1stThread.recordTime(false);
 }
 
 void ModuleWidget::on_pushSend1st_clicked()
@@ -84,7 +107,7 @@ void ModuleWidget::on_pushSend1st_clicked()
         showMsgBox(tr("ERROR: comm1st send data failed: %1").arg(ret));
         return;
     }
-    OS::wait(20);
+    OS::wait(1);
 
     
     setLcdSendCount1st(comm1st->getSendCount());
@@ -103,69 +126,16 @@ void ModuleWidget::on_pushSend2nd_clicked()
         showMsgBox(tr("ERROR: comm2nd send data failed: %1").arg(ret));
         return;
     }
-    OS::wait(20);
+    OS::wait(1);
 
     setLcdSendCount2nd(comm2nd->getSendCount());
     appendTextBrowserSend2nd(QString::fromStdString(sendData));
     setTextLineSend2nd(QString::fromStdString(OS::genVisibleString(8)));
 }
-/*
-void ModuleWidget::onComm1stSended()
+
+void ModuleWidget::onComm1stRecved(double timestamp, const QString& data)
 {
-    int ret;
-    string recvData;
-    unsigned int sendNum;
-    double lostRate,erroRate;
-
-    ret = comm2nd->recv(recvData);
-    if (ret == COMM_SUC)
-    {
-        (*g_log)<< "comm2nd recving data: " << recvData << ENDL;
-        comm1st->compare(recvData);
-        setTextLineRecv2nd(recvData);
-
-        sendNum = comm1st->getSendCount();
-        lostRate = (sendNum == 0) ? 0.0 : 1 - 1.0 * comm2nd->getRecvCount() / sendNum;
-        erroRate = (sendNum == 0) ? 0.0 : 1.0 * comm1st->getErroCount() / sendNum;
-
-        setLcdSendCount1st(sendNum);
-        setLcdLostRate1st(lostRate);
-        setLcdErroRate1st(erroRate);
-    }
-    else
-    {
-        (*g_log)<< "comm2nd recv failed... " << ENDL;
-    }
-}
-
-void ModuleWidget::onComm2ndSended()
-{
-    int ret;
-    string recvData;
-    unsigned int sendNum;
-    double lostRate,erroRate;
-
-    ret = comm1st->recv(recvData);
-    if (ret == COMM_SUC)
-    {
-        (*g_log)<< "comm1st recving data: " << recvData << ENDL;
-        comm2nd->compare(recvData);
-        setTextLineRecv1st(recvData);
-
-        sendNum = comm2nd->getSendCount();
-        lostRate = (sendNum == 0) ? 0.0 : 1 - 1.0 * comm1st->getRecvCount() / sendNum;
-        erroRate = (sendNum == 0) ? 0.0 : 1.0 * comm2nd->getErroCount() / sendNum;
-        
-        setLcdSendCount2nd(sendNum);
-        setLcdLostRate2nd(lostRate);
-        setLcdErroRate2nd(erroRate);
-    }
-}
-*/
-
-void ModuleWidget::onComm1stRecved(const QString& data)
-{
-    appendTextBrowserRecv1st(data);
+    appendTextBrowserRecv1st(tr("[%1] %2 ").arg(timestamp, 0,'f',6).arg(data));
     if (comm1st != NULL)
     {
         setLcdRecvCount1st(comm1st->getRecvCount());
@@ -174,9 +144,9 @@ void ModuleWidget::onComm1stRecved(const QString& data)
     (*g_log)<< "comm1st recving data: " << temp << ENDL;
 }
 
-void ModuleWidget::onComm2ndRecved(const QString& data)
+void ModuleWidget::onComm2ndRecved(double timestamp, const QString& data)
 {
-    appendTextBrowserRecv2nd(data);
+    appendTextBrowserRecv2nd(tr("[%1] %2 ").arg(timestamp, 0,'f',6).arg(data));
     if (comm2nd != NULL)
     {
         setLcdRecvCount2nd(comm2nd->getRecvCount());

@@ -22,14 +22,19 @@ public:
     void start();
     void stop();
     void run();
+    void recordTime(bool sw);
+    double getMaxInterval();
     
 signals:
-    void dataRecved(const QString& data);
+    void dataRecved(double timestamp, const QString& data);
     void commNotBinded();
 
 private:
     Comm *comm;
     bool bStop;
+    bool bRecordTime;
+    double maxIntervel;
+    double lastTimestamp;
 };
 
 
