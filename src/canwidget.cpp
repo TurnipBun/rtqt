@@ -26,8 +26,7 @@ void CanWidget::on_pushOpen_clicked()
         setEnabledAtClose();
         return;
     } 
-    setTextLineSend1st(QString::fromStdString(OS::genVisibleString(8)));
-    setTextLineSend2nd(QString::fromStdString(OS::genVisibleString(8)));
+    setLineSendText(QString::fromStdString(OS::genVisibleString(8)));
 }
 
 void CanWidget::on_pushClose_clicked()
@@ -72,19 +71,17 @@ void CanWidget::fillCombos()
 
 int CanWidget::initComms(int devno, int baudRate)
 {
-    comm1st = new Can(devno*2,baudRate);
-    comm2nd = new Can(devno*2+1,baudRate);
+    commReceiver = new Can(devno*2,baudRate);
+    commSender = new Can(devno*2+1,baudRate);
 
     int ret;
-    ret = comm1st->open();
+    ret = commReceiver->open();
     if (COMM_SUC != ret) return ret;
-    ret = comm2nd->open();
+    ret = commSender->open();
     if (COMM_SUC != ret) return ret;
 
-    comm1stThread.bind(comm1st);
-    comm1stThread.start();
-    comm2ndThread.bind(comm2nd);
-    comm2ndThread.start();
+    commRecvThread.bind(commReceiver);
+    commRecvThread.start();
     
     return COMM_SUC;
 }

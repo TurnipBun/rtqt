@@ -40,9 +40,7 @@ void ComWidget::on_pushOpen_clicked()
         setEnabledAtClose();
         return;
     }
-    
-    setTextLineSend1st(QString::fromStdString(OS::genVisibleString(8)));
-    setTextLineSend2nd(QString::fromStdString(OS::genVisibleString(8)));
+    setLineSendText(QString::fromStdString(OS::genVisibleString(8)));
 }
 
 void ComWidget::on_pushClose_clicked()
@@ -132,18 +130,16 @@ int ComWidget::initComms(const string& com1stName, const string& com2ndName, boo
                              int baudRate, int dataBit, int stopBit, int parity)
 {
     
-    comm1st = new DEF_COM(com1stName,baudRate,dataBit,stopBit,parity,isRtsOn);
-    comm2nd = new DEF_COM(com2ndName,baudRate,dataBit,stopBit,parity,isRtsOn);
+    commReceiver = new DEF_COM(com1stName,baudRate,dataBit,stopBit,parity,isRtsOn);
+    commSender = new DEF_COM(com2ndName,baudRate,dataBit,stopBit,parity,isRtsOn);
     int ret;
-    ret = comm1st->open();
+    ret = commReceiver->open();
     if (COMM_SUC != ret) return ret;
-    ret = comm2nd->open();
+    ret = commSender->open();
     if (COMM_SUC != ret) return ret;
     
-    comm1stThread.bind(comm1st);
-    comm1stThread.start();
-    comm2ndThread.bind(comm2nd);
-    comm2ndThread.start();
+    commRecvThread.bind(commReceiver);
+    commRecvThread.start();
     
     return COMM_SUC;
 }

@@ -16,31 +16,13 @@ public:
     ModuleWidget();
     ~ModuleWidget();
 
-    //发送数据的行文本编辑框访问函数
-    string getTextLineSend1st();
-    string getTextLineSend2nd();
-    void setTextLineSend1st(const QString& text);
-    void setTextLineSend2nd(const QString& text);
-
-    //发送和接受数据记录文本框访问函数
-    void appendTextBrowserSend1st(const QString& text);
-    void appendTextBrowserSend2nd(const QString& text);
-    void appendTextBrowserRecv1st(const QString& text);
-    void appendTextBrowserRecv2nd(const QString& text);
-
-    //发送和接受统计显示框访问函数
-    void setLcdSendCount1st(int count);
-    void setLcdSendCount2nd(int count);
-    void setLcdRecvCount1st(int count);
-    void setLcdRecvCount2nd(int count);
-    
-    //显示消息框槽函数
+    string getLineSendText();
+    void setLineSendText(const QString& text);
+    void appendBrowserSendText(const QString& text);
+    void appendBrowserRecvText(const QString& text);
+    void setLcdSendCount(int count);
+    void setLcdRecvCount(int count);
     void showMsgBox(const QString& text);
-    
-signals:
-    //发送成功后触发接受的信号,过时的
-    //void comm1stSended();
-    //void comm2ndSended();
     
 public slots:
     //设置窗口部件的可用性
@@ -52,18 +34,12 @@ public slots:
     virtual void on_pushClose_clicked() = 0;
 
     //按钮点击槽函数
-    void on_pushAuto12_clicked();
-    void on_pushAuto21_clicked();
-    void on_pushSend1st_clicked();
-    void on_pushSend2nd_clicked();
-    
-    //自发自收情况下的接收数据处理，过时
-    //void onComm1stSended();
-    //void onComm2ndSended();
+    void on_pushAutoRecv_clicked();
+    void on_pushAutoSend_clicked();
+    void on_pushSend_clicked();
     
     //线程的接收数据槽函数
-    void onComm1stRecved(double timestamp, const QString& text);
-    void onComm2ndRecved(double timestamp, const QString& text);
+    void onCommRecved(double timestamp, const QString& text);
 
     //线程状态通知槽函数
     void onThreadStarted();
@@ -75,73 +51,42 @@ public slots:
 protected:
 
     //通信对象
-    Comm * comm1st;
-    Comm * comm2nd;
+    Comm * commReceiver;
+    Comm * commSender;
     //线程对象
-    CommThread comm1stThread;
-    CommThread comm2ndThread;
-    
+    CommThread commRecvThread;
+
     QMessageBox msgBox;
 };
 
-inline string ModuleWidget::getTextLineSend1st()
+inline string ModuleWidget::getLineSendText()
 {
-    return lineSend1st->text().toStdString();
+    return lineSend->text().toStdString();
 }
 
-inline string ModuleWidget::getTextLineSend2nd()
+inline void ModuleWidget::setLineSendText(const QString& text)
 {
-    return lineSend2nd->text().toStdString();
+    lineSend->setText(text);
 }
 
-inline void ModuleWidget::setTextLineSend1st(const QString& text)
+inline void ModuleWidget::appendBrowserSendText(const QString& text)
 {
-    lineSend1st->setText(text);
+    textSend->append(text);
 }
 
-inline void ModuleWidget::setTextLineSend2nd(const QString& text)
+inline void ModuleWidget::appendBrowserRecvText(const QString& text)
 {
-    lineSend2nd->setText(text);
+    textRecv->append(text);
 }
 
-inline void ModuleWidget::appendTextBrowserSend1st(const QString& text)
+inline void ModuleWidget::setLcdSendCount(int count)
 {
-    textSend1st->append(text);
+    lcdSendCount->display(count);
 }
 
-inline void ModuleWidget::appendTextBrowserSend2nd(const QString& text)
+inline void ModuleWidget::setLcdRecvCount(int count)
 {
-    textSend2nd->append(text);
-}
-
-inline void ModuleWidget::appendTextBrowserRecv1st(const QString& text)
-{
-    textRecv1st->append(text);
-}
-
-inline void ModuleWidget::appendTextBrowserRecv2nd(const QString& text)
-{
-    textRecv2nd->append(text);
-}
-
-inline void ModuleWidget::setLcdSendCount1st(int count)
-{
-    lcdSendCount1st->display(count);
-}
-
-inline void ModuleWidget::setLcdSendCount2nd(int count)
-{
-    lcdSendCount2nd->display(count);
-}
-
-inline void ModuleWidget::setLcdRecvCount1st(int count)
-{
-    lcdRecvCount1st->display(count);   
-}
-
-inline void ModuleWidget::setLcdRecvCount2nd(int count)
-{
-    lcdRecvCount2nd->display(count);
+    lcdRecvCount->display(count);   
 }
 
 #endif

@@ -49,8 +49,7 @@ void SockWidget::on_pushOpen_clicked()
         setEnabledAtClose();
         return;
     }
-    setTextLineSend1st(QString::fromStdString(OS::genVisibleString(8)));
-    setTextLineSend2nd(QString::fromStdString(OS::genVisibleString(8)));
+    setLineSendText(QString::fromStdString(OS::genVisibleString(8)));
     return;
 }
 
@@ -63,8 +62,8 @@ void SockWidget::on_pushClose_clicked()
 
 void SockWidget::addSettings()
 {
-    labelServerIp = new QLabel(tr(" Server IP:"));
-    labelServerPort = new QLabel(tr(" Server Port:"));
+    labelServerIp = new QLabel(tr(" Receiver IP:"));
+    labelServerPort = new QLabel(tr(" Receiver Port:"));
     comboServerIp = new QComboBox;
     lineServerPort = new QLineEdit(tr("5005"));
     hLayoutUp = new QHBoxLayout;
@@ -74,8 +73,8 @@ void SockWidget::addSettings()
     hLayoutUp->addWidget(lineServerPort);
     hLayoutUp->insertStretch(-1);
     
-    labelClientIp = new QLabel(tr(" Client IP:"));
-    labelClientPort = new QLabel(tr(" Client Port:"));
+    labelClientIp = new QLabel(tr(" Sender IP:"));
+    labelClientPort = new QLabel(tr(" Sender Port:"));
     comboClientIp = new QComboBox;
     lineClientPort= new QLineEdit(tr("5006"));
 
@@ -86,8 +85,8 @@ void SockWidget::addSettings()
     hLayoutMid1->addWidget(lineClientPort);
     hLayoutMid1->insertStretch(-1);
     
-    labelConnectIp = new QLabel(tr(" Connect IP:"));
-    labelConnectPort = new QLabel(tr(" Connect Port:"));
+    labelConnectIp = new QLabel(tr(" Target IP:"));
+    labelConnectPort = new QLabel(tr(" Target Port:"));
     lineConnectIp = new QLineEdit();
     lineConnectPort = new QLineEdit();
 
@@ -160,19 +159,17 @@ int SockWidget::initComms(const string& serverIp, unsigned int serverPort,
                              const string& protocol)
 {   
     int ret;
-    comm1st = new DEF_SOCK(serverIp, serverPort, protocol);
-    comm2nd = new DEF_SOCK(clientIp, clientPort, protocol);
-    reinterpret_cast<DEF_SOCK*>(comm2nd)->connect(connectIp, connectPort);
+    commReceiver = new DEF_SOCK(serverIp, serverPort, protocol);
+    commSender = new DEF_SOCK(clientIp, clientPort, protocol);
+    reinterpret_cast<DEF_SOCK*>(commSender)->connect(connectIp, connectPort);
 
-    ret = comm1st->open();
+    ret = commReceiver->open();
     if (COMM_SUC != ret) return ret;
-    ret = comm2nd->open();
+    ret = commSender->open();
     if (COMM_SUC != ret) return ret;
     
-    comm1stThread.bind(comm1st);
-    comm1stThread.start();
-    comm2ndThread.bind(comm2nd);
-    comm2ndThread.start();
+    commRecvThread.bind(commReceiver);
+    commRecvThread.start();
     return COMM_SUC;
 }
 

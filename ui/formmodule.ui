@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>922</width>
-    <height>766</height>
+    <width>908</width>
+    <height>1078</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,22 +40,74 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushAuto">
-         <property name="text">
-          <string>自动</string>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-        </widget>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="group1st">
+    <widget class="QGroupBox" name="groupRecv">
      <property name="title">
-      <string>1st</string>
+      <string>Receiver</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>接收数据</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLCDNumber" name="lcdRecvCount"/>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushAutoRecv">
+          <property name="text">
+           <string>监控收</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QTextBrowser" name="textRecv"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupSend">
+     <property name="title">
+      <string>Sender</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
@@ -72,106 +124,56 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineSend1st"/>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>间隔(ms)</string>
+          </property>
+         </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushSend1st">
+         <widget class="QLineEdit" name="lineInterval">
           <property name="text">
-           <string>发送</string>
+           <string>20</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>个数</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineNum">
+          <property name="text">
+           <string>100</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushAutoSend">
+          <property name="text">
+           <string>自动发</string>
           </property>
          </widget>
         </item>
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_7">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>发送数据</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLCDNumber" name="lcdSendCount1st"/>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QTextBrowser" name="textSend1st">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <item>
-             <widget class="QLabel" name="label_11">
-              <property name="text">
-               <string>接收数据</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLCDNumber" name="lcdRecvCount1st"/>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QTextBrowser" name="textRecv1st"/>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="group2nd">
-     <property name="title">
-      <string>2nd</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_8">
-      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <spacer name="horizontalSpacer_4">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>发送数据</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLCDNumber" name="lcdSendCount"/>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_5">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -184,10 +186,10 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineSend2nd"/>
+         <widget class="QLineEdit" name="lineSend"/>
         </item>
         <item>
-         <widget class="QPushButton" name="pushSend2nd">
+         <widget class="QPushButton" name="pushSend">
           <property name="text">
            <string>发送</string>
           </property>
@@ -196,76 +198,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_9">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>待发数据</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLCDNumber" name="lcdSendCount2nd"/>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QTextBrowser" name="textSend2nd"/>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>接收数据</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLCDNumber" name="lcdRecvCount2nd"/>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_6">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QTextBrowser" name="textRecv2nd"/>
-          </item>
-         </layout>
-        </item>
-       </layout>
+       <widget class="QTextBrowser" name="textSend"/>
       </item>
      </layout>
     </widget>
