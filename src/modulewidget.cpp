@@ -96,11 +96,11 @@ void ModuleWidget::on_pushSend_clicked()
 {
     int ret;
     string sendData = getLineSendText();
-    (*g_log)<< "Sender sending data: " << sendData << ENDL;
+    (*g_log)<< "comm send data: " << sendData << ENDL;
     ret = commSender->send(sendData);
     if (ret != COMM_SUC)
     {
-        showMsgBox(tr("ERROR: commSender send data failed: %1").arg(ret));
+        showMsgBox(tr("ERROR: comm send data failed: %1").arg(ret));
         return;
     }
 
@@ -117,17 +117,17 @@ void ModuleWidget::onCommRecved(double timestamp, const QString& data)
         setLcdRecvCount(commReceiver->getRecvCount());
     }
     const string& temp = data.toStdString();
-    (*g_log)<< "commSender recving data: " << temp << ENDL;
+    (*g_log)<< "comm recv data: " << temp << ENDL;
 }
 
 void ModuleWidget::onThreadStarted()
 {
-     (*g_log)<< "one thread started... " << ENDL;
+     (*g_log)<< "thread started... " << ENDL;
 }
 
 void ModuleWidget::onThreadFinished()
 {
-    (*g_log)<< "one thread finished... " << ENDL;
+    (*g_log)<< "thread finished... " << ENDL;
 }
 
 
@@ -136,8 +136,9 @@ void ModuleWidget::clearComms()
     if (commReceiver != NULL)
     {
         commRecvThread.stop();
-        commReceiver->close();//能使socket从阻塞中返回
-        commRecvThread.wait();
+        commReceiver->close();
+        //受can驱动阻塞线程的影响无法退出的,用terminate替换wait,不推荐
+        commRecvThread.terminate();
         delete commReceiver;
         commReceiver = NULL;
     }

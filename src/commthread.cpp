@@ -1,5 +1,6 @@
 #include "commthread.hpp"
 #include "os.hpp"
+#include "log.hpp"
 
 CommThread::CommThread()
     :comm(NULL),bStop(false),bRecordTime(false)
@@ -13,11 +14,6 @@ CommThread::~CommThread()
 void CommThread::bind(Comm * comm)
 {
     this->comm = comm;
-}
-
-void CommThread::clear()
-{
-    comm->send("bye");
 }
 
 void CommThread::start()
@@ -64,6 +60,7 @@ void CommThread::run()
             }
             emit dataRecved(timestamp,QString::fromStdString(data));
         }
+        else (*g_log)<< "recv in thread return false ..."<< ENDL;
     }
     return;
 }

@@ -18,7 +18,6 @@ public:
     ~CommThread();
 
     void bind(Comm * comm);
-    void clear();
     void start();
     void stop();
     void run();

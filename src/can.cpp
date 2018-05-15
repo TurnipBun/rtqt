@@ -77,6 +77,7 @@ int Can::open()
 
 void Can::close()
 {
+    CANReset(ch);
     CANClose(ch);
 }
 
