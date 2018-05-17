@@ -20,10 +20,10 @@ public:
     ~ComWidget();
 
     QHBoxLayout *hLayoutUp;
-    QLabel *labelComName1st;
-    QLabel *labelComName2nd;
-    QComboBox *comboComName1st;
-    QComboBox *comboComName2nd;
+    QLabel *labelComReceiver;
+    QLabel *labelComSender;
+    QComboBox *comboComReceiver;
+    QComboBox *comboComSender;
     
     QHBoxLayout *hLayoutDown;
     QLabel *labelBaudRate;

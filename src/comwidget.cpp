@@ -17,8 +17,8 @@ void ComWidget::on_pushOpen_clicked()
 
     clearTextBrowsers();
     
-    string com1stName = comboComName1st->currentText().toStdString();
-    string com2ndName = comboComName2nd->currentText().toStdString();
+    string com1stName = comboComReceiver->currentText().toStdString();
+    string com2ndName = comboComSender->currentText().toStdString();
     if (com1stName == com2ndName)
     {
         showMsgBox("ERROR: two ports can not be the same.");
@@ -52,16 +52,16 @@ void ComWidget::on_pushClose_clicked()
 void ComWidget::addSettings()
 {
     hLayoutUp = new QHBoxLayout;
-    labelComName1st = new QLabel(tr(" 1st COM:"));
-    labelComName2nd = new QLabel(tr(" 2nd COM:"));
-    comboComName1st = new QComboBox;
-    comboComName2nd = new QComboBox;
+    labelComReceiver = new QLabel(tr(" Receiver COM:"));
+    labelComSender = new QLabel(tr(" Sender COM:"));
+    comboComReceiver = new QComboBox;
+    comboComSender = new QComboBox;
     checkRts = new QCheckBox("RTS");
-    hLayoutUp->addWidget(labelComName1st);
-    hLayoutUp->addWidget(comboComName1st);
-    hLayoutUp->addWidget(labelComName2nd);
-    hLayoutUp->addWidget(comboComName2nd);
-    hLayoutUp->addWidget(comboComName2nd);
+    hLayoutUp->addWidget(labelComReceiver);
+    hLayoutUp->addWidget(comboComReceiver);
+    hLayoutUp->addWidget(labelComSender);
+    hLayoutUp->addWidget(comboComSender);
+    hLayoutUp->addWidget(comboComSender);
     hLayoutUp->insertStretch(-1);
     hLayoutUp->addWidget(checkRts);
     
@@ -97,8 +97,8 @@ void ComWidget::fillCombos()
     const map<string,int>& mapPort = DEF_COM::enumSettingPort();
     for(iter=mapPort.begin();iter!=mapPort.end();++iter)
     {
-        comboComName1st->addItem(QString::fromStdString(iter->first), iter->second);
-        comboComName2nd->addItem(QString::fromStdString(iter->first), iter->second);
+        comboComReceiver->addItem(QString::fromStdString(iter->first), iter->second);
+        comboComSender->addItem(QString::fromStdString(iter->first), iter->second);
     }
 
     const map<string,int>& mapBaudRate = DEF_COM::enumSettingBaudRate();

@@ -55,6 +55,13 @@ void ModuleWidget::on_pushAutoSend_clicked()
 {
     int i;
     QProgressBar processBar;
+
+    if (commSender == NULL)
+    {
+        showMsgBox(tr("Sender is not initialized..."));
+        return;
+    }
+    
     int waitTime = lineInterval->text().toInt();
     int autoNum = lineNum->text().toInt();
     
@@ -95,6 +102,12 @@ void ModuleWidget::on_pushAutoRecv_clicked()
 void ModuleWidget::on_pushSend_clicked()
 {
     int ret;
+    if (commSender == NULL)
+    {
+        showMsgBox(tr("Sender is not initialized..."));
+        return;
+    }
+    
     string sendData = getLineSendText();
     (*g_log)<< "comm send data: " << sendData << ENDL;
     ret = commSender->send(sendData);

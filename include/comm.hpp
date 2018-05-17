@@ -14,7 +14,7 @@ using std::string;
 #define COMM_ERR_RECV -7
 
 #define COMMBUF_LEN 32
-#define COMM_AUTO_TEST_NUM 100
+#define COMM_AUTO_TEST_NUM 1000
 #define COMM_DEFAULT_SOCKPORT 5005
 
 /**C O M*******************************************************************

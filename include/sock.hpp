@@ -3,6 +3,7 @@
 #include <map>
 #ifdef VXWORKS
 #include <sockLib.h>
+#include <in.h>
 #define INVALID_SOCKET ERROR
 #define SOCKET_ERROR ERROR
 #else

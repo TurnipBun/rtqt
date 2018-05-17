@@ -146,7 +146,7 @@ void Sock::close()
 #ifndef VXWORKS
     closesocket(sockFd);
 #else
-    close(sockFd);
+    ::close(sockFd);
 #endif
     sockFd = INVALID_SOCKET;
     return;

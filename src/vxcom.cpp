@@ -2,6 +2,7 @@
 #include <sioLib.h>
 #include <string.h>
 #include "vxcom.hpp"
+#include "xr17d15xSio.h"
 using std::pair;
 
 

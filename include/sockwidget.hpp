@@ -4,7 +4,6 @@
 #include "modulewidget.hpp"
 
 #include "sock.hpp"
-#define DEF_SOCK Sock
 
 
 /**S O C K   W I D G E T***************************************************
@@ -26,6 +25,7 @@ public:
     QLineEdit *lineServerPort;
    
     QHBoxLayout *hLayoutMid1;
+    QCheckBox *checkClient;
     QLabel *labelClientIp;
     QLabel *labelClientPort;
     QComboBox *comboClientIp;
@@ -49,9 +49,11 @@ public:
 public slots:
     void on_pushOpen_clicked();
     void on_pushClose_clicked();
+    void onClientStateChanged(bool state);
 
 private:
-    
+    bool bClientEnabled;
+
     void addSettings();
     void fillParams();
     int initSockLib();

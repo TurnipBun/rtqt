@@ -2,9 +2,11 @@
 #include "sockwidget.hpp"
 
 SockWidget::SockWidget()
+    :bClientEnabled(true)
 {
     addSettings();
     fillParams();
+    connect(checkClient,SIGNAL(clicked(bool)),this,SLOT(onClientStateChanged(bool)));
 }
 
 SockWidget::~SockWidget()
@@ -59,6 +61,10 @@ void SockWidget::on_pushClose_clicked()
     releaseSockLib();
 }
 
+void SockWidget::onClientStateChanged(bool state)
+{
+    bClientEnabled = state;
+}
 
 void SockWidget::addSettings()
 {
@@ -72,13 +78,15 @@ void SockWidget::addSettings()
     hLayoutUp->addWidget(labelServerPort);
     hLayoutUp->addWidget(lineServerPort);
     hLayoutUp->insertStretch(-1);
-    
+
+    checkClient = new QCheckBox();
     labelClientIp = new QLabel(tr(" Sender IP:"));
     labelClientPort = new QLabel(tr(" Sender Port:"));
     comboClientIp = new QComboBox;
     lineClientPort= new QLineEdit(tr("5006"));
 
     hLayoutMid1 = new QHBoxLayout;
+    hLayoutMid1->addWidget(checkClient);
     hLayoutMid1->addWidget(labelClientIp);
     hLayoutMid1->addWidget(comboClientIp);
     hLayoutMid1->addWidget(labelClientPort);
@@ -118,7 +126,7 @@ void SockWidget::fillParams()
 {
     map<string,int>::const_iterator iter;
     
-    const map<string,int>& mapSysIp = DEF_SOCK::enumSysIpAddr();
+    const map<string,int>& mapSysIp = Sock::enumSysIpAddr();
     for(iter=mapSysIp.begin();iter!=mapSysIp.end();++iter)
     {
         comboServerIp->addItem(QString::fromStdString(iter->first), iter->second);
@@ -132,6 +140,7 @@ void SockWidget::fillParams()
 
     lineConnectIp->setText(comboServerIp->currentText());
     lineConnectPort->setText(lineServerPort->text());
+    checkClient->setChecked(bClientEnabled);
     return;
 }
 
@@ -159,17 +168,21 @@ int SockWidget::initComms(const string& serverIp, unsigned int serverPort,
                              const string& protocol)
 {   
     int ret;
-    commReceiver = new DEF_SOCK(serverIp, serverPort, protocol);
-    commSender = new DEF_SOCK(clientIp, clientPort, protocol);
-    reinterpret_cast<DEF_SOCK*>(commSender)->connect(connectIp, connectPort);
-
+    
+    commReceiver = new Sock(serverIp, serverPort, protocol);
     ret = commReceiver->open();
     if (COMM_SUC != ret) return ret;
-    ret = commSender->open();
-    if (COMM_SUC != ret) return ret;
-    
     commRecvThread.bind(commReceiver);
     commRecvThread.start();
+
+    if (bClientEnabled)
+    {
+        commSender = new Sock(clientIp, clientPort, protocol);
+        reinterpret_cast<Sock*>(commSender)->connect(connectIp, connectPort);
+        ret = commSender->open();
+        if (COMM_SUC != ret) return ret;
+    }
+    
     return COMM_SUC;
 }
 
