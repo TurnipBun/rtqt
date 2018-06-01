@@ -19,6 +19,7 @@ const map<string,int>& WinCom::enumSettingPort()
     {
         //打开键
         ret = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_READ, &key);
+        if (ret != ERROR_SUCCESS) return mapPort;
 
         for (i = 0; ret != ERROR_NO_MORE_ITEMS ; ++i )
         {
